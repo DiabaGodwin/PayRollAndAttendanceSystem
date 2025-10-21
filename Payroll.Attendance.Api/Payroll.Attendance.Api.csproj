@@ -7,8 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.3" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.12"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Payroll.Attendance.Application\Payroll.Attendance.Application.csproj" />
+      <ProjectReference Include="..\Payroll.Attendance.Infrastructure\Payroll.Attendance.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

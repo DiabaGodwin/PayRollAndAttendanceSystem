@@ -11,4 +11,7 @@ public class User
     public required string PasswordHash { get; set; }
     [Required] public string FirstName { get; set; } = null!;
     [Required] public string SurName { get; set; } = null!;
+    public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; }
 }
