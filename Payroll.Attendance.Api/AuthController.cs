@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Services;
@@ -14,5 +15,15 @@ public class AuthController(IAuthService service) : ControllerBase
         var result = await service.AddUser(request,cancellationToken);
         return Ok(result);
     }
+
+    [HttpPost("Login")]
+    public async Task<IActionResult> Login([FromBody] LoginUser request, CancellationToken cancellationToken)
+    {
+        var result  = await service.LoginUser(request, cancellationToken);
+        return Ok(result);
+    }
+    
   
+    
+ 
 }
