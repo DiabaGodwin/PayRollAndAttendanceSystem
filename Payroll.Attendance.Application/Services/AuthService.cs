@@ -39,4 +39,30 @@ public class AuthService(IAuthRepository repository) : IAuthService
         //Hash password
         return password;
     }
+    
+    public async Task<User?> LoginUser(LoginUser request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Find user by username or email
+            var user = await repository.LoginUser(request.UserName,request.Password, cancellationToken);
+            if (user == null) return null;
+
+            // Verify password
+            if (!VerifyPassword(request.Password, user.PasswordHash))
+                return null;
+
+            
+            return user;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    private bool VerifyPassword(string requestPassword, string userPasswordHash)
+    {
+        throw new NotImplementedException();
+    }
 }
