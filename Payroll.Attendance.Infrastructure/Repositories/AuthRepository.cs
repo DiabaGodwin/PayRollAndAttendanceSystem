@@ -29,9 +29,17 @@ public class AuthRepository(ApplicationDbContext context) : IAuthRepository
     }
 
     public async Task<User?> CheckIfUserExists(string username, string email, CancellationToken cancellationToken)
-     => await context.Users.FirstOrDefaultAsync(x => x.UserName == username || x.Email == email, cancellationToken);
-     
-    
-    
+        => await context.Users.FirstOrDefaultAsync(x => x.UserName == username || x.Email == email, cancellationToken);
+
+    public Task<User?> LoginUser(string requestUserName, string requestPassword, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    public async Task<User?> LoginUser(User user, CancellationToken cancellationToken) =>
+        await context.Users.FirstOrDefaultAsync(x => x.UserName == user.UserName && x.PasswordHash == user.PasswordHash,
+            cancellationToken);
+
     
 }
