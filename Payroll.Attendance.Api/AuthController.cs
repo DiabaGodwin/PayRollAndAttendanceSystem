@@ -14,5 +14,9 @@ public class AuthController(IAuthService service) : ControllerBase
         var result = await service.AddUser(request,cancellationToken);
         return Ok(result);
     }
-  
-}
+    
+    
+
+
+
+    }

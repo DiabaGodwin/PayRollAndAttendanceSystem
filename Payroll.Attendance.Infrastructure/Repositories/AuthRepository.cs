@@ -31,4 +31,7 @@ public class AuthRepository(ApplicationDbContext context) : IAuthRepository
     public async Task<User?> CheckIfUserExists(string username, string email, CancellationToken cancellationToken)
      => await context.Users.FirstOrDefaultAsync(x => x.UserName == username || x.Email == email, cancellationToken);
      
+    
+    
+    
 }
