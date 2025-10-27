@@ -1,18 +1,29 @@
 using Microsoft.EntityFrameworkCore;
 using Payroll.Attendance.Domain.Models;
-using Payroll.Attendance.Infrastructure.Configurations;
 
 namespace Payroll.Attendance.Infrastructure.Data;
 
-public class ApplicationDbContext : DbContext
+public sealed class ApplicationDbContext : DbContext
 {
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
         
     }
     
-    public virtual DbSet<Profile> Profiles {get;set;}
-    public virtual DbSet<User> Users {get;set;}
+    
+    public DbSet<Profile> Profiles {get;set;}
+    public DbSet<User> Users {get;set;}
+    
+    public DbSet<Domain.Models.Attendance> AttendanceRecords {get;set;}
+
+    public DbSet<Employee> Employees { get; set; }
+    
+    public DbSet<PayrollRecord> PayrollRecords {get;set;}
+    
+
+
+
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
