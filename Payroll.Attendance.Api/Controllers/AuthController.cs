@@ -22,8 +22,14 @@ public class AuthController(IAuthService service) : ControllerBase
         var result  = await service.LoginUser(request, cancellationToken);
         return Ok(result);
     }
+
+    [HttpPut("UpdateUserRequest")]
+
+    public async Task<ActionResult> UpdateUserRequest([FromBody] UpdateUserRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await service.UpdateUserRequest(request, cancellationToken);
+        return Ok(result);
+    } 
     
-  
-    
- 
 }

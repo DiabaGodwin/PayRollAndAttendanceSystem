@@ -27,7 +27,7 @@ public class AuthService(IAuthRepository repository) : IAuthService
             await repository.AddUser(newUser, cancellationToken);
             return newUser.Id;
         }
-        catch (Exception ex)
+        catch (System.Exception ex)
         {
             return 0;
         }
@@ -55,10 +55,15 @@ public class AuthService(IAuthRepository repository) : IAuthService
             
             return user;
         }
-        catch (Exception)
+        catch (System.Exception)
         {
             return null;
         }
+    }
+
+    public Task<User> UpdateUserRequest(UpdateUserRequest request, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 
     private bool VerifyPassword(string requestPassword, string userPasswordHash)
