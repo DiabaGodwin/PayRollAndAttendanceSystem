@@ -5,8 +5,8 @@ namespace Payroll.Attendance.Domain.Models
 {
     public class Employee
     {
-        public int Id { get;  set; }
-        public string FullName { get;  set; } = string.Empty;
+        public int Id { get;  set; } 
+        public string? FullName { get; set; } = null!;
         public EmployeeCategory Category { get;  set; }
         public string Department { get;  set; } = string.Empty;
         public decimal BasicSalary { get; set; }
@@ -40,7 +40,7 @@ namespace Payroll.Attendance.Domain.Models
             {
                 EmployeeCategory.Fulltime=>BasicSalary + Allowance - Deduction,
                 EmployeeCategory.PartTime => BasicSalary + Allowance - Deduction,
-                EmployeeCategory.NSS => 559.00m + TopUp,
+                EmployeeCategory.Nss => 559.00m + TopUp,
                 EmployeeCategory.Intern => Allowance,
                 _ => 0
             };

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Payroll.Attendance.Application.Dto;
@@ -6,6 +7,7 @@ using Payroll.Attendance.Application.Services;
 namespace Payroll.Attendance.Api;
 [ApiController]
 [Route("api/[controller]")]
+
 public class AuthController(IAuthService service) : ControllerBase
 {
 
@@ -23,7 +25,8 @@ public class AuthController(IAuthService service) : ControllerBase
         return Ok(result);
     }
 
-    [HttpPut("UpdateUserRequest")]
+    [HttpPut("UpdateUserRequest")]  
+    
 
     public async Task<ActionResult> UpdateUserRequest([FromBody] UpdateUserRequest request,
         CancellationToken cancellationToken)

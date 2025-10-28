@@ -4,6 +4,6 @@ public  enum EmployeeCategory
     {
     PartTime,
     Fulltime,
-    NSS,
+    Nss,
     Intern
     }

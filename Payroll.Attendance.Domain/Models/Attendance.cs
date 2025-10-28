@@ -19,12 +19,3 @@ public class Attendance
     public virtual Employee Employee { get; set; } = null!;
 }
 
-public enum AttendanceStatus
-{
-    Present,
-    Absent,
-    Late,
-    HalfDay,
-    Leave,
-    Holiday
-}
