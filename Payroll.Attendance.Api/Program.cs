@@ -4,13 +4,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Payroll.Attendance.Api.Middlewares;
+using Payroll.Attendance.Application.ServiceExtensions;
 using Payroll.Attendance.Infrastructure.Data;
+using Payroll.Attendance.Infrastructure.ServiceExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddApplicationServices();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Innorik Payroll API", Version = "v1" });
