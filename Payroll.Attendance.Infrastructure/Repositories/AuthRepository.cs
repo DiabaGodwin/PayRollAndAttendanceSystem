@@ -5,40 +5,42 @@ using Payroll.Attendance.Infrastructure.Data;
 
 namespace Payroll.Attendance.Infrastructure.Repositories;
 
-public class AuthRepository(ApplicationDbContext context) : IAuthRepository
+public class AuthRepository(ApplicationDbContext dbContext) : IAuthRepository
 {
     public async Task AddUser(User user, CancellationToken cancellationToken)
     {
-        await context.Users.AddAsync(user, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await dbContext.Users.AddAsync(user, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<User> GetUserByEmail(string email, CancellationToken cancellationToken)
+    public async Task<User?> GetUserByEmail(string email, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var result = await dbContext.Users.FirstOrDefaultAsync(x=>x.Email==email,cancellationToken);
+        return result ?? null;
     }
 
-    public async Task<User> GetUserByUsername(string username, CancellationToken cancellationToken)
+    public async Task<User?> GetUserByUsername(string username, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var result = await dbContext.Users.FirstOrDefaultAsync(x => x.UserName==username,cancellationToken);
+        return result;
     }
 
-    public async Task<User> GetUserByUserById(int id, CancellationToken cancellationToken)
+    public async Task<User?> GetUserByUserById(int id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var result = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        return result;
     }
 
     public async Task<User?> CheckIfUserExists(string username, string email, CancellationToken cancellationToken)
-        => await context.Users.FirstOrDefaultAsync(x => x.UserName == username || x.Email == email, cancellationToken);
+        => await dbContext.Users.FirstOrDefaultAsync(x => x.UserName == username || x.Email == email, cancellationToken);
 
-    public Task<User?> LoginUser(string requestUserName, string requestPassword, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    public async Task<User?> LoginUser(string usernameOrEmail, string requestPassword, CancellationToken cancellationToken)
+         => await dbContext.Users.FirstOrDefaultAsync(x => (x.UserName == usernameOrEmail || x.Email == usernameOrEmail) && x.PasswordHash==requestPassword, cancellationToken);
+    
 
 
     public async Task<User?> LoginUser(User user, CancellationToken cancellationToken) =>
-        await context.Users.FirstOrDefaultAsync(x => x.UserName == user.UserName && x.PasswordHash == user.PasswordHash,
+        await dbContext.Users.FirstOrDefaultAsync(x => x.UserName == user.UserName && x.PasswordHash == user.PasswordHash,
             cancellationToken);
 
     

@@ -1,4 +1,4 @@
-namespace Payroll.Attendance.Application.Dto;
+namespace Payroll.Attendance.Domain.Models;
 
 public class SystemSettings
 {

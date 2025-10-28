@@ -19,6 +19,8 @@ public class CryptographyUtility : ICryptographyUtility
         private static readonly HashAlgorithmName HashAlgorithm = HashAlgorithmName.SHA512;
         private const char Delimiter = ';';
         private readonly JwtSettings _jwtSettings;
+        private const string SaltKey = "yrdtycrydrsetu89y98uijreeweaweasz7i80u9";
+
 
         public CryptographyUtility(IOptions<JwtSettings> jwtSettings)
         {

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Payroll.Attendance.Domain.Models;
+using Payroll.Attendance.Infrastructure.Configurations;
 
 namespace Payroll.Attendance.Infrastructure.Data;
 
@@ -20,14 +21,10 @@ public sealed class ApplicationDbContext : DbContext
     public DbSet<Employee> Employees { get; set; }
     
     public DbSet<PayrollRecord> PayrollRecords {get;set;}
-    
 
 
-
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        //optionsBuilder.ApplyConfiguration(UserConfiguration);
+        modelBuilder.ApplyConfiguration(new UserConfiguration());
     }
-    
 }

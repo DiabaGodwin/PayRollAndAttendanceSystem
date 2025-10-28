@@ -1,9 +1,8 @@
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Services;
 
-namespace Payroll.Attendance.Api;
+namespace Payroll.Attendance.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController(IAuthService service) : ControllerBase
@@ -17,7 +16,7 @@ public class AuthController(IAuthService service) : ControllerBase
     }
 
     [HttpPost("Login")]
-    public async Task<IActionResult> Login([FromBody] LoginUser request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
         var result  = await service.LoginUser(request, cancellationToken);
         return Ok(result);

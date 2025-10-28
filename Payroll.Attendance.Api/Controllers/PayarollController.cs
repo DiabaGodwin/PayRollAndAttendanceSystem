@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Payroll.Attendance.Application.Services;
-using Payroll.Attendance.Domain.Models;
 
-namespace Payroll.Attendance.API.Controllers
+namespace Payroll.Attendance.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
