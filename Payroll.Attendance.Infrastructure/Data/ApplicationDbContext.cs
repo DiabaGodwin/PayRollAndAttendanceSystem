@@ -19,7 +19,7 @@ public sealed class ApplicationDbContext : DbContext
 
     public DbSet<Employee> Employees { get; set; }
     
-    public DbSet<PayrollRecord> Payroll {get;set;}
+    public DbSet<PayrollRecord> PayrollRecords {get;set;}
     
 
 
