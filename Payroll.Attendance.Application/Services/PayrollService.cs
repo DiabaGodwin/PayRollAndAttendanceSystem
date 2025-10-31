@@ -6,14 +6,14 @@ namespace Payroll.Attendance.Application.Services
 {
     public class PayrollService
     {
-        private readonly IPayrollRecordRepository _payrollRecordRepository;
+        private readonly IPayrollRepository _payrollRepository;
         private readonly IAttendanceRepository _attendanceRepository;
 
         public PayrollService(
-            IPayrollRecordRepository payrollRecordRepository,
+            IPayrollRepository payrollRepository,
             IAttendanceRepository attendanceRecordRepository)
         {
-            _payrollRecordRepository = payrollRecordRepository;
+            _payrollRepository = payrollRepository;
             _attendanceRepository = attendanceRecordRepository;
         }
 

@@ -21,7 +21,7 @@ public sealed class ApplicationDbContext : DbContext
     public DbSet<Employee> Employees { get; set; }
     
     public DbSet<PayrollRecord> PayrollRecords {get;set;}
-
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

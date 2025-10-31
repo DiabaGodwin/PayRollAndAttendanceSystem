@@ -2,7 +2,7 @@ using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Application.Repositories
 {
-    public interface IPayrollRecordRepository
+    public interface IPayrollRepository
     {
         Task AddPayrollAsync(PayrollRecord payroll, CancellationToken cancellationToken);
         Task<List<PayrollRecord>> GetPayrollsByEmployeeAsync(int employeeId, CancellationToken cancellationToken);

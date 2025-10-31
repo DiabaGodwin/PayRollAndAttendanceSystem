@@ -7,48 +7,91 @@
 
     namespace Payroll.Attendance.Infrastructure.Repositories
     {
+       
+        
         public class EmployeeRepository(ApplicationDbContext context) : IEmployeeRepository
         {
-            public async Task AddEmployeeAsync(Employee employee, CancellationToken cancellationToken)
+            public async Task<int> AddEmployeeAsync(Employee employee, CancellationToken token)
             {
-                await context.Employees.AddAsync(employee, cancellationToken);
-                await context.SaveChangesAsync(cancellationToken);
+             await context.Employees.AddAsync(employee, token);
+             var result = await context.SaveChangesAsync(token);
+             return result;
             }
 
             public async Task<List<Employee>> GetAllEmployeesAsync(CancellationToken cancellationToken)
-            {
-                return await context.Employees.ToListAsync(cancellationToken);
+            { 
+                return await context.Employees.OrderBy(e => e.FirstName).ToListAsync(cancellationToken);
+                   
             }
 
             public async Task<Employee?> GetEmployeeByIdAsync(int id, CancellationToken cancellationToken)
             {
-                return await context.Employees.FirstOrDefaultAsync(e => Equals(e.Id, id), cancellationToken);
+                var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+                return employee;
             }
 
-            public async Task UpdateEmployeeAsync(Employee employee, CancellationToken cancellationToken)
+            public async Task<Employee> UpdateEmployeeAsync(Employee employee, CancellationToken cancellationToken)
+            { 
+                context.Entry(employee).State = EntityState.Modified;
+                employee.UpdatedAt = DateTime.UtcNow;
+                context.SaveChangesAsync(cancellationToken);
+               return employee;
+               
+            }
+
+            public async Task<bool> DeleteEmployeeAsync(int id, CancellationToken cancellationToken)
             {
-                context.Employees.Update(employee);
+                var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+                if (employee == null)
+                
+                    return false;
+                context.Employees.Remove(employee);
                 await context.SaveChangesAsync(cancellationToken);
+                return true;
             }
 
-            public async Task DeleteEmployeeAsync(int id, CancellationToken cancellationToken)
+            public async Task<Employee> GetByIdAsync(int employeeId)
             {
-                var employee = await context.Employees.FindAsync(new object[] { id }, cancellationToken);
-                if (employee != null)
+               var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == employeeId);
+               return employee;
+            }
+
+            public async Task<Employee> GetByEmailAsync(string email, CancellationToken ct)
+            { 
+                var employee = await context.Employees.FirstOrDefaultAsync(x => x.Email == email, ct);
+                return employee;
+            }
+
+            public async Task<Employee?> GetByIdAsync(string employeeId, CancellationToken ct)
+            {
+                return await context.Employees.FirstOrDefaultAsync(x => x.Id.ToString() == employeeId);
+            }
+
+            public async Task<EmployeeSummary?> GetByEmployeeSummaryAsync(string username, CancellationToken ct)
+            {
+                var employee = await context.Employees.ToListAsync();
+                return new EmployeeSummary
                 {
-                    context.Employees.Remove(employee);
-                    await context.SaveChangesAsync(cancellationToken);
-                }
+                    TotalEmployee = employee.Count,
+                    NSSPersonnel = employee.Count(e => e.Category == "NSS"),
+                    interns = employee.Count(e => e.Category == "Interns"),
+                    ActiveEmployee = employee.Count(e => e.EmploymentStatus == "Active"),
+                    InActiveEmployee = employee.Count(e => e.EmploymentStatus == "InActive")
+                };
             }
 
-            public Task<object> GetByIdAsync(int employeeId)
+            public async Task<List<Employee>> GetEmployeesByDepartmentAsync(string department, CancellationToken ct)
             {
-                throw new NotImplementedException();
+             return await context.Employees.Where(e => e.Department == department).OrderBy(e=>e.FirstName).ToListAsync(ct); 
             }
 
-            public Task<object> GetByIdAsync(string employeeId, CancellationToken ct)
+            public async Task<IEnumerable<Employee>> GetByDepartmentAsync(CancellationToken ct)
             {
-                throw new NotImplementedException();
+               return await context.Employees.OrderBy(e => e.FirstName).ToListAsync(ct);
             }
+
+            
+
+
         }
-    }
+    }     

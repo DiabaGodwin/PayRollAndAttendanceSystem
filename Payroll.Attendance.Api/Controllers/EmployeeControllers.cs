@@ -1,64 +1,91 @@
 using Microsoft.AspNetCore.Mvc;
+using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Services;
-using Payroll.Attendance.Domain.Enum;
 using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class EmployeeController : ControllerBase
+    public class EmployeeController(IEmployeeService service) : ControllerBase
     {
-        private readonly EmployeeService _employeeService;
-
-        public EmployeeController(EmployeeService employeeService)
+        [HttpPost]
+        public async Task<IActionResult> AddEmployee([FromBody] AddEmployeeDto addEmployeeDto, CancellationToken cancellationToken)
         {
-            _employeeService = employeeService;
+            try
+            {
+                var result = await service.AddEmployeeAsync(addEmployeeDto, cancellationToken);
+
+                return CreatedAtAction(nameof(GetEmployeeById), new { id = result},
+                    new ApiResponse<int>
+                    {
+                        Message = " Employee Add successfully",
+                        StatusCode = StatusCodes.Status201Created,
+                        Data = 0
+                    }
+                
+                );
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>
+
+                {
+                    Message = $"Error Adding employee; {ex.Message}",
+                    StatusCode = StatusCodes.Status400BadRequest,
+
+                });
+
+            }
         }
 
-        // ✅ Create new employee
-        [HttpPost("create")]
-        public async Task<IActionResult> CreateEmployee([FromBody] CreateEmployeeDto dto, CancellationToken token)
+     
+        [HttpGet]
+        public async Task<IActionResult> GetAllEmployees(EmployeeResponseDto cancellationToken)
         {
-            var employee = new Employee(
-                dto.FullName,
-                dto.Category,
-                dto.Department,
-                dto.BasicSalary,
-                dto.Allowance,
-                dto.TopUp
-            );
-
-            await _employeeService.AddEmployeeAsync(employee, token);
-            return Ok("Employee created successfully.");
+            var result = await service.GetAllEmployeesAsync(cancellationToken);
+            return Ok(result);
         }
 
-        // ✅ Get all employees
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAllEmployees(CancellationToken token)
+      
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetEmployeeById(int id, CancellationToken cancellationToken)
         {
-            var employees = await _employeeService.GetAllEmployeesAsync(token);
-            return Ok(employees);
-        }
-
-        // ✅ Get single employee by ID
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetEmployeeById(int id, CancellationToken token)
-        {
-            var employee = await _employeeService.GetEmployeeByIdAsync(id, token);
+            var employee = await service.GetEmployeeByIdAsync(id, cancellationToken);
             if (employee == null)
-                return NotFound("Employee not found.");
+                return NotFound($"Employee with ID {id} not found.");
             return Ok(employee);
         }
-    }
 
-    // DTO (Data Transfer Object)q
-    public record CreateEmployeeDto(
-        string FullName,
-        EmployeeCategory Category,
-        string Department,
-        decimal BasicSalary,
-        decimal Allowance,
-        decimal TopUp
-    );
+       
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] Employee updatedEmployee, CancellationToken cancellationToken)
+        {
+            var existingEmployee = await service.GetEmployeeByIdAsync(id, cancellationToken);
+            if (existingEmployee == null)
+                return NotFound($"Employee with ID {id} not found.");
+
+            
+            existingEmployee.FirstName = updatedEmployee.FirstName;
+            existingEmployee.Surname = updatedEmployee.Surname;
+            existingEmployee.Email = updatedEmployee.Email;
+            existingEmployee.Department = updatedEmployee.Department;
+
+            await service.UpdateEmployeeAsync(existingEmployee, cancellationToken);
+            return Ok(existingEmployee);
+        }
+
+       
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteEmployee(int id, CancellationToken cancellationToken)
+        {
+            var existingEmployee = await service.GetEmployeeByIdAsync(id, cancellationToken);
+            if (existingEmployee == null)
+                return NotFound($"Employee with ID {id} not found.");
+
+            await service.DeleteEmployeeAsync(id, cancellationToken);
+            return NoContent();
+        }
+    }
 }
+        
