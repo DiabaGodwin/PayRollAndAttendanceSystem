@@ -13,6 +13,8 @@ public static class InfrastructureServiceExtensions
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services,IConfiguration configuration)
     {
         services.AddScoped<IAuthRepository, AuthRepository>();
+        services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+        
         services.AddScoped<ICryptographyUtility,  CryptographyUtility>();
         
         services.AddDbContext<ApplicationDbContext>(options =>
