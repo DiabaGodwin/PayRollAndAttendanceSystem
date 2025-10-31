@@ -5,7 +5,7 @@ using Payroll.Attendance.Infrastructure.Data;
 
 namespace Payroll.Attendance.Infrastructure.Repositories;
 
-public class AttendanceRepository(ApplicationDbContext context) : IAttendanceRepository
+public class AttendanceRepository(ApplicationDbContext context) : IAttendanceRepository 
 {
     public Task RecordAttendanceAsync(Domain.Models.Attendance request, CancellationToken ct)
     {

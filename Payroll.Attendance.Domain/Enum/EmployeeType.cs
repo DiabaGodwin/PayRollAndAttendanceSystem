@@ -1,9 +1,9 @@
 namespace Payroll.Attendance.Domain.Enum;
 
-public  enum EmployeeCategory
+public  enum EmploymentType
     {
     PartTime,
     Fulltime,
-    NSS,
+    Nss,
     Intern
     }
