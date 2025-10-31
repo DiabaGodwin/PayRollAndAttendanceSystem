@@ -5,7 +5,7 @@ namespace Payroll.Attendance.Application.Services;
 
 public class AttendanceCalculator : IAttendanceCalculator
 {
-    public void CalculateAttendanceDetails(Domain.Models.Attendance attendance, SystemSettings settings)
+    public void CalculateAttendanceDetails(Domain.Models.AttendanceRecord attendanceRecord, SystemSettings settings)
     {
         throw new NotImplementedException();
     }

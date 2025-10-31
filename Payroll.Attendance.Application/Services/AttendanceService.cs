@@ -1,10 +1,100 @@
+using Microsoft.AspNetCore.Http;
+using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Repositories;
-using Payroll.Attendance.Domain.Enum;
 using Payroll.Attendance.Domain.Models;
 
-namespace Payroll.Attendance.Application.Services
+namespace Payroll.Attendance.Application.Services;
+
+public class AttendanceService(IAttendanceRepository repository) : IAttendanceService
 {
-    public class AttendanceService : IAttendanceService
+    public async Task<ApiResponse<int>> CheckIn(AttendanceRequest request, CancellationToken cancellationToken)
     {
+      
+        var startTime = DateTime.UtcNow.Date.AddHours(8);  
+        var record = new AttendanceRecord
+        {
+            CheckIn = DateTime.UtcNow,
+            Date = DateTime.UtcNow.Date,
+            IsLate = DateTime.UtcNow > startTime
+        };
+        
+         var result = await repository.CheckIn(record, cancellationToken);
+         if (result < 1)
+         {
+             return new ApiResponse<int>()
+             {
+                 Message = "Failed to check in",
+                 Data = record.Id,
+                 StatusCode = StatusCodes.Status500InternalServerError
+             };
+         }
+
+        return new ApiResponse<int>
+        {
+            Data = record.Id,
+            Message = "Attendance added successfully",
+            StatusCode = StatusCodes.Status201Created
+        };
+    }
+
+    public async Task<ApiResponse<IEnumerable<AttendanceRecord>>> GetAllAsync(CancellationToken cancellationToken)
+    {
+        var result = await repository.GetAllAsync(cancellationToken);
+        return new ApiResponse<IEnumerable<AttendanceRecord>>
+        {
+            Message = "All attendance records fetched",
+            Data = result,
+            StatusCode = StatusCodes.Status200OK
+        };
+    }
+
+    public async Task<ApiResponse<AttendanceRecord?>> GetByIdAsync(int id, CancellationToken cancellationToken)
+    {
+        var result = await repository.GetByIdAsync(id, cancellationToken);
+        if (result == null)
+        {
+            return new ApiResponse<AttendanceRecord?>
+            {
+                Message = "Record not found",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+        }
+
+        return new ApiResponse<AttendanceRecord?>
+        {
+            Data = result,
+            StatusCode = StatusCodes.Status200OK
+        };
+    }
+
+    public async Task<ApiResponse<int>> CheckOutAsync(UpdatedAttendanceRequest request, CancellationToken cancellationToken)
+    {
+       var result =  await repository.CheckOut(request.EmployeeId, cancellationToken);
+
+       if (result == 0)
+       {
+           return new ApiResponse<int>()
+           {
+               Message = "Employee not found",
+               StatusCode = StatusCodes.Status400BadRequest
+           };
+       }
+       return new ApiResponse<int>
+       {
+            Message = $"Record updated successfully",
+            StatusCode = StatusCodes.Status200OK
+        };
+       
+    }
+
+
+    public async Task<ApiResponse<int>> DeleteAsync(int id, CancellationToken cancellationToken)
+    {
+        await repository.DeleteAsync(id, cancellationToken);
+        return new ApiResponse<int>
+        {
+            Message = "Attendance deleted successfully",
+            StatusCode = StatusCodes.Status200OK
+        };
     }
 }

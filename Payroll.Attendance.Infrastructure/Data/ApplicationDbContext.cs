@@ -16,7 +16,7 @@ public sealed class ApplicationDbContext : DbContext
     public DbSet<Profile> Profiles {get;set;}
     public DbSet<User> Users {get;set;}
     
-    public DbSet<Domain.Models.Attendance> AttendanceRecords {get;set;}
+    public DbSet<AttendanceRecord> Attendances {get;set;}
 
     public DbSet<Employee> Employees { get; set; }
     
@@ -26,5 +26,6 @@ public sealed class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new UserConfiguration());
+        modelBuilder.ApplyConfiguration(new AttendanceRecordConfiguration());
     }
 }
