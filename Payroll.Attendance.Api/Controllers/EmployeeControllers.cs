@@ -16,10 +16,10 @@ namespace Payroll.Attendance.Api.Controllers
             {
                 var result = await service.AddEmployeeAsync(addEmployeeDto, cancellationToken);
 
-                return CreatedAtAction(nameof(GetEmployeeById), new { id = result.Id},
+                return CreatedAtAction(nameof(GetEmployeeById), new { id = result}, 
                     new ApiResponse<int>
                     {
-                        IsSuccess = true,
+                      
                         Message = " Employee Add successfully",
                         StatusCode = StatusCodes.Status201Created,
                         Data = 0
@@ -32,7 +32,7 @@ namespace Payroll.Attendance.Api.Controllers
                 return BadRequest(new ApiResponse<string>
 
                 {
-                    IsSuccess = false,
+                   
                     Message = $"Error Adding employee; {ex.Message}",
                     StatusCode = StatusCodes.Status400BadRequest,
                     Data = 0

@@ -42,7 +42,8 @@ namespace Payroll.Attendance.Application.Services
             
             return new ApiResponse<int>()
             {
-                
+                StatusCode = StatusCodes.Status200OK,
+            
             };
         }
 
