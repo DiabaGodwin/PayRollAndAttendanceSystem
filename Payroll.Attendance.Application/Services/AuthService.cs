@@ -1,4 +1,6 @@
+using Mapster;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Repositories;
 using Payroll.Attendance.Application.Utility;
@@ -6,7 +8,11 @@ using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Application.Services;
 
-public class AuthService(IAuthRepository repository, ICryptographyUtility cryptoUtility) : IAuthService
+public class AuthService(
+    IAuthRepository repository, 
+    ICryptographyUtility cryptoUtility,
+    ILogger<AuthService> logger
+    ) : IAuthService
 {
     public async Task<ApiResponse<int>> AddUser(AddUserRequest request, CancellationToken cancellationToken)
     {
@@ -42,7 +48,6 @@ public class AuthService(IAuthRepository repository, ICryptographyUtility crypto
             await repository.AddUser(newUser, cancellationToken);
             return new ApiResponse<int>()
             {
-                IsSuccess = true,
                 Message = "User created.",
                 Data = newUser.Id,
                 StatusCode = StatusCodes.Status201Created,
@@ -64,27 +69,47 @@ public class AuthService(IAuthRepository repository, ICryptographyUtility crypto
     {
         try
         {
-            
-            var hashPassword = cryptoUtility.HashPassword(request.Password);
-            // Find user by username or email
-            var user = await repository.CheckIfUserExists(request.UserNameOrEmail,hashPassword, cancellationToken);
+            var user = await repository.CheckIfUserExists(request.UserNameOrEmail,request.UserNameOrEmail, cancellationToken);
             if (user == null) return new ApiResponse<LoginResponse>()
             {
-                Message = @"Wrong username or password."
+                Message = @"Wrong username or password.",
+                StatusCode = StatusCodes.Status401Unauthorized,
+                
             };
-
-            var verify = cryptoUtility.VerifyPassword(request.Password, hashPassword);
-            if (!verify) return null;
-            // Verify password
-            if (!VerifyPassword(request.Password, user.PasswordHash))
-                return null;
-
+            var verify = cryptoUtility.VerifyPassword(request.Password, user.PasswordHash);
+            if (!verify)
+            {
+                return new ApiResponse<LoginResponse>()
+                {
+                    Message = @"Wrong username or password.",
+                    StatusCode = StatusCodes.Status401Unauthorized,
+                };
+            }
+            var userModel = user.Adapt(new UserModel());
             
-            return new ApiResponse<LoginResponse>();
+            var token = cryptoUtility.GenerateToken(userModel);
+
+            var response = new LoginResponse()
+            {
+                User = userModel,
+                Token = token,
+            };
+            return new ApiResponse<LoginResponse>()
+            { 
+                Data = response,
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Login successful."
+            };
         }
         catch (System.Exception)
         {
-            return null;
+            logger.LogError("An error occured while trying to login user.");
+            return new ApiResponse<LoginResponse>()
+            {
+                Message = @"An error occured while trying to login user.",
+                StatusCode = StatusCodes.Status500InternalServerError,
+
+            };
         }
     }
 

@@ -13,7 +13,7 @@ namespace Payroll.Attendance.Infrastructure;
 
 public class CryptographyUtility : ICryptographyUtility
 {
-    private const int SaltSize = 16;
+        private const int SaltSize = 16;
         private const int HashSize = 64; // SHA-512
         private const int Iterations = 10000;
         private static readonly HashAlgorithmName HashAlgorithm = HashAlgorithmName.SHA512;
@@ -39,15 +39,15 @@ public class CryptographyUtility : ICryptographyUtility
             var element = passwordHash.Split(Delimiter);
             var salt = Convert.FromBase64String(element[0]);
             var hash = Convert.FromBase64String(element[1]);
-
             var newHash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithm, HashSize);
-            return CryptographicOperations.FixedTimeEquals(hash, newHash);
+            var result =  CryptographicOperations.FixedTimeEquals(hash, newHash);
+            return result;
         }
 
         public TokenResponse GenerateToken(UserModel user)
         {
             
-            var roles = JsonSerializer.Serialize(user);
+            var userModel = JsonSerializer.Serialize(user);
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtSettings.Key));
 
@@ -56,7 +56,7 @@ public class CryptographyUtility : ICryptographyUtility
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Email, user.Email),
-                    new Claim("UserData", roles)
+                    new Claim("UserData", userModel)
                 }),
                 Issuer =_jwtSettings.Issuer,
                 Audience = _jwtSettings.Audience,

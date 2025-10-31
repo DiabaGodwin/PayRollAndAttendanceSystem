@@ -14,14 +14,14 @@ public class AuthController(IAuthService service) : ControllerBase
     public async Task<IActionResult> Register([FromBody] AddUserRequest request, CancellationToken cancellationToken)
     {
         var result = await service.AddUser(request,cancellationToken);
-        return Ok(result);
+        return StatusCode(result.StatusCode,result);
     }
 
     [HttpPost("Login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
         var result  = await service.LoginUser(request, cancellationToken);
-        return Ok(result);
+        return StatusCode(result.StatusCode,result);
     }
 
     [HttpPut("UpdateUserRequest")]
@@ -30,7 +30,7 @@ public class AuthController(IAuthService service) : ControllerBase
         CancellationToken cancellationToken)
     {
         var result = await service.UpdateUserRequest(request, cancellationToken);
-        return Ok(result);
+        return StatusCode(result.StatusCode,result);
     } 
     
 }

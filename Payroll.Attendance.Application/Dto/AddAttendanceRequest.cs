@@ -1,6 +1,6 @@
 namespace Payroll.Attendance.Application.Dto;
 
-public class AttendanceSearchRequest
+public class AddAttendanceRequest
 {
     
 }
