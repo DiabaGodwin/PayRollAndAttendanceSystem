@@ -10,4 +10,6 @@ public interface IAttendanceService
     Task<ApiResponse<int>> CheckOutAsync(UpdatedAttendanceRequest request, CancellationToken cancellationToken);
 
     Task<ApiResponse<int>> DeleteAsync(int id, CancellationToken cancellationToken);
+    
+    Task<ApiResponse<AttendanceSummaryDto>> GetSummaryAsync(CancellationToken cancellationToken);
 }

@@ -10,5 +10,7 @@ namespace Payroll.Attendance.Application.Repositories
         Task DeleteAsync(int id, CancellationToken cancellationToken);
         Task<int> CheckOut(int employeeId, CancellationToken cancellationToken);
         
+        Task<IEnumerable<AttendanceRecord>> GetByDateAsync(DateTime date, CancellationToken cancellationToken);
+        
     }
 }
