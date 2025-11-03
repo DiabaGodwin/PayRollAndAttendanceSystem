@@ -97,4 +97,38 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
             StatusCode = StatusCodes.Status200OK
         };
     }
+
+    public async Task<ApiResponse<AttendanceSummaryDto>> GetSummaryAsync(CancellationToken cancellationToken)
+    {
+        var today = DateTime.UtcNow.Date;
+        var lateThreshold = new TimeSpan(8, 10, 0); 
+
+        // Fetch all attendance records for today
+        var todayRecords = await repository.GetAllAsync(cancellationToken);
+        var recordsToday = todayRecords.Where(a => a.Date == today).ToList();
+
+        var presentToday = recordsToday.Count(r => r.CheckIn != null);
+        var lateArrivals = recordsToday.Count(r => r.CheckIn.HasValue && r.CheckIn.Value.TimeOfDay > lateThreshold);
+        var totalEmployees = 100;
+      
+
+        var absent = totalEmployees - presentToday;
+        if (absent < 0) absent = 0; // safety check
+
+        var summary = new AttendanceSummaryDto
+        {
+            TotalEmployees = totalEmployees,
+            PresentToday = presentToday,
+            LateArrivals = lateArrivals,
+            Absent = absent,
+           
+        };
+
+        return new ApiResponse<AttendanceSummaryDto>
+        {
+            Data = summary,
+            Message = "Attendance summary retrieved successfully",
+            StatusCode = StatusCodes.Status200OK
+        };
+    }
 }
