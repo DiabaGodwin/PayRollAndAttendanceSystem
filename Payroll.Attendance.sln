@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Payroll.Attendance.Applicat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Payroll.Attendance.Domain", "Payroll.Attendance.Domain\Payroll.Attendance.Domain.csproj", "{4B6EE770-F656-47DC-B90A-AE3EBAF20D4D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Payroll.Attendance.Infratructure", "Payroll.Attendance.Infratructure\Payroll.Attendance.Infratructure.csproj", "{CC2DB0E5-18A0-422F-9B5B-B3CBC0A6F8F1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Payroll.Attendance.Infrastructure", "Payroll.Attendance.Infrastructure\Payroll.Attendance.Infrastructure.csproj", "{CC2DB0E5-18A0-422F-9B5B-B3CBC0A6F8F1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Payroll.Attendance.Api", "Payroll.Attendance.Api\Payroll.Attendance.Api.csproj", "{FA3B808D-92BB-4EF2-BE24-CCB7F6266DB2}"
 EndProject
