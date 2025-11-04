@@ -1,3 +1,4 @@
+using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Application.Repositories
@@ -6,11 +7,10 @@ namespace Payroll.Attendance.Application.Repositories
     {
         Task<int> CheckIn(AttendanceRecord attendance, CancellationToken cancellationToken);
         Task<IEnumerable<AttendanceRecord>> GetAllAsync(CancellationToken cancellationToken);
+        Task<IEnumerable<AttendanceRecord>> GetAllAsync(PaginationRequest request, CancellationToken cancellationToken);
         Task<AttendanceRecord?> GetByIdAsync(int id, CancellationToken cancellationToken);
         Task DeleteAsync(int id, CancellationToken cancellationToken);
         Task<int> CheckOut(int employeeId, CancellationToken cancellationToken);
-        
-        Task<IEnumerable<AttendanceRecord>> GetByDateAsync(DateTime date, CancellationToken cancellationToken);
         
     }
 }

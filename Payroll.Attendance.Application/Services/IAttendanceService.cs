@@ -5,11 +5,10 @@ namespace Payroll.Attendance.Application.Services;
 public interface IAttendanceService
 {
     Task<ApiResponse<int>> CheckIn(AttendanceRequest request, CancellationToken cancellationToken);
-    Task<ApiResponse<IEnumerable<AttendanceRecord>>> GetAllAsync(CancellationToken cancellationToken);
+    Task<ApiResponse<IEnumerable<AttendanceRecord>>> GetAllAsync(PaginationRequest request, CancellationToken cancellationToken);
+
     Task<ApiResponse<AttendanceRecord?>> GetByIdAsync(int id, CancellationToken cancellationToken);
     Task<ApiResponse<int>> CheckOutAsync(UpdatedAttendanceRequest request, CancellationToken cancellationToken);
 
     Task<ApiResponse<int>> DeleteAsync(int id, CancellationToken cancellationToken);
-    
-    Task<ApiResponse<AttendanceSummaryDto>> GetSummaryAsync(CancellationToken cancellationToken);
 }

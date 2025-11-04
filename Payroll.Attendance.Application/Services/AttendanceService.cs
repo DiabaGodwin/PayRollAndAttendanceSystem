@@ -37,16 +37,19 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
         };
     }
 
-    public async Task<ApiResponse<IEnumerable<AttendanceRecord>>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<ApiResponse<IEnumerable<AttendanceRecord>>> GetAllAsync(PaginationRequest request, CancellationToken cancellationToken)
     {
-        var result = await repository.GetAllAsync(cancellationToken);
+        var result = await repository.GetAllAsync(request, cancellationToken);
+
         return new ApiResponse<IEnumerable<AttendanceRecord>>
         {
-            Message = "All attendance records fetched",
+            Message = "Paginated attendance records fetched successfully",
             Data = result,
             StatusCode = StatusCodes.Status200OK
         };
     }
+
+  
 
     public async Task<ApiResponse<AttendanceRecord?>> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
@@ -103,17 +106,19 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
         var today = DateTime.UtcNow.Date;
         var lateThreshold = new TimeSpan(8, 10, 0); 
 
-        // Fetch all attendance records for today
+        
         var todayRecords = await repository.GetAllAsync(cancellationToken);
         var recordsToday = todayRecords.Where(a => a.Date == today).ToList();
 
         var presentToday = recordsToday.Count(r => r.CheckIn != null);
         var lateArrivals = recordsToday.Count(r => r.CheckIn.HasValue && r.CheckIn.Value.TimeOfDay > lateThreshold);
-        var totalEmployees = 100;
-      
 
-        var absent = totalEmployees - presentToday;
-        if (absent < 0) absent = 0; // safety check
+       
+        var totalEmployees = 100;
+    
+
+        var absent = totalEmployees - (presentToday);
+        if (absent < 0) absent = 0;
 
         var summary = new AttendanceSummaryDto
         {

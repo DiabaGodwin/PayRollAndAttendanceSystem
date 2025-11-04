@@ -14,6 +14,28 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
        return result;
     }
 
+    public async Task<IEnumerable<AttendanceRecord>> GetAllAsync(PaginationRequest request, CancellationToken cancellationToken)
+    {
+        var query = dbContext.Attendances.AsQueryable();
+
+       
+        if (request.EmployeeId.HasValue)
+            query = query.Where(a => a.EmployeeId == request.EmployeeId.Value);
+
+      
+        if (request.StartDate.HasValue)
+            query = query.Where(a => a.Date >= request.StartDate.Value);
+
+        if (request.EndDate.HasValue)
+            query = query.Where(a => a.Date <= request.EndDate.Value);
+
+      
+        int skip = (request.PageNumber - 1) * request.PageSize;
+        query = query.Skip(skip).Take(request.PageSize);
+
+        return await query.ToListAsync(cancellationToken);
+    }
+
     public async Task<AttendanceRecord> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         var result = await dbContext.Attendances.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
@@ -45,14 +67,4 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
         await dbContext.SaveChangesAsync(cancellationToken);
         return result.Id;
     }
-    
-    public async Task<IEnumerable<AttendanceRecord>> GetByDateAsync(DateTime date, CancellationToken cancellationToken)
-    {
-        return await dbContext.Attendances
-            .Where(a => a.Date == date)
-            .ToListAsync(cancellationToken);
-    }
-
-    
-    
 }
