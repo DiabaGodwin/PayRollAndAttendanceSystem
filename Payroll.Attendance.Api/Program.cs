@@ -12,6 +12,16 @@ using Payroll.Attendance.Infrastructure.ServiceExtensions;
 var builder = WebApplication.CreateBuilder(args);
 IConfiguration configuration = new ConfigurationBuilder().SetBasePath(System.IO.Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json", reloadOnChange: true, optional: false).AddEnvironmentVariables().Build();
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(7002); // HTTP
+    options.ListenAnyIP(7003, listenOptions =>
+    {
+        listenOptions.UseHttps(); // HTTPS
+    });
+});
+
+// Add services to the container.
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
