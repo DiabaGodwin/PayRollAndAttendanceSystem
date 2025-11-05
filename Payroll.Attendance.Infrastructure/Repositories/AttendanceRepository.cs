@@ -45,4 +45,14 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
         await dbContext.SaveChangesAsync(cancellationToken);
         return result.Id;
     }
+    
+    public async Task<IEnumerable<AttendanceRecord>> GetByDateAsync(DateTime date, CancellationToken cancellationToken)
+    {
+        return await dbContext.Attendances
+            .Where(a => a.Date == date)
+            .ToListAsync(cancellationToken);
+    }
+
+    
+    
 }
