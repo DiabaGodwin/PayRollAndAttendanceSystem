@@ -11,6 +11,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAttendanceService, AttendanceService>();
         services.AddScoped<IAttendanceCalculator, AttendanceCalculator>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IEmployeeService, EmployeeService>();
+        services.AddScoped<IDepartmentService, DepartmentService>();
         return services;
     }
     

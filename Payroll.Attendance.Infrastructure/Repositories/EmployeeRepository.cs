@@ -1,6 +1,9 @@
 
+    using Azure.Core;
     using Microsoft.EntityFrameworkCore;
+    using Payroll.Attendance.Application.Dto;
     using Payroll.Attendance.Application.Repositories;
+    using Payroll.Attendance.Domain.Enum;
     using Payroll.Attendance.Domain.Models;
     using Payroll.Attendance.Infrastructure.Data;
 
@@ -18,11 +21,43 @@
              return result;
             }
 
-            public async Task<List<Employee>> GetAllEmployeesAsync(CancellationToken cancellationToken)
-            { 
-                return await context.Employees.OrderBy(e => e.FirstName).ToListAsync(cancellationToken);
-                   
+            public async Task<List<Employee>> GetAllEmployeesAsync(PaginationRequest request, CancellationToken cancellationToken)
+            {
+                var query =  context.Employees.AsQueryable().AsNoTracking();
+
+                if (!string.IsNullOrEmpty(request.SearchText))
+                {
+                    query= query.Where(x=>
+                        x.EmploymentType.Contains(request.SearchText) ||
+                        x.FirstName.Contains(request.SearchText) ||
+                        x.OtherName.Contains(request.SearchText) || 
+                        x.JobPosition.Contains(request.SearchText) ||
+                        x.Surname.Contains( request.SearchText)  ||
+                        x.Email.Contains(request.SearchText) ||
+                        x.PayFrequency.Contains(request.SearchText) ||
+                        x.PhoneNumber.Contains(request.SearchText) ||
+                        x.ReportingManager.Contains(request.SearchText) ||
+                        x.Salary.Contains(request.SearchText) ||
+                        x.Address.Contains(request.SearchText)
+                        
+                        
+                        );
+                }
+
+                if (request.StartDate.HasValue && request.EndDate.HasValue)
+                {
+                    query = query.Where(x =>x.CreatedAt >= request.StartDate && x.CreatedAt <= request.EndDate);
+                }
+                
+                int skip = (request.PageNumber - 1) * request.PageSize;
+                
+                var data = await query
+                    .Skip(skip)
+                    .Take(request.PageSize)
+                    .ToListAsync(cancellationToken);
+                return data;
             }
+
 
             public async Task<Employee?> GetEmployeeByIdAsync(int id, CancellationToken cancellationToken)
             {
@@ -62,27 +97,31 @@
                 return employee;
             }
 
+           
+
             public async Task<Employee?> GetByIdAsync(string employeeId, CancellationToken ct)
             {
-                return await context.Employees.FirstOrDefaultAsync(x => x.Id.ToString() == employeeId);
+                return await context.Employees.FirstOrDefaultAsync(x => x.Id.ToString() == employeeId,ct);
             }
 
-            public async Task<EmployeeSummary?> GetByEmployeeSummaryAsync(string username, CancellationToken ct)
+            public async Task<EmployeeSummary?> GetByEmployeeSummaryAsync(string  username, CancellationToken ct)
             {
-                var employee = await context.Employees.ToListAsync();
+                var employee = await context.Employees.ToListAsync(ct);
                 return new EmployeeSummary
                 {
                     TotalEmployee = employee.Count,
-                    NSSPersonnel = employee.Count(e => e.Category == "NSS"),
-                    interns = employee.Count(e => e.Category == "Interns"),
-                    ActiveEmployee = employee.Count(e => e.EmploymentStatus == "Active"),
-                    InActiveEmployee = employee.Count(e => e.EmploymentStatus == "InActive")
+                    NSSPersonnel = employee.Count(e => e.EmploymentType == "Nss"),
+                    interns = employee.Count(e => e.EmploymentType == "Intern"),
+                    ActiveEmployee = employee.Count(x => x.IsActive),
+                    InActiveEmployee = employee.Count(e => e.IsActive==false)
                 };
             }
 
-            public async Task<List<Employee>> GetEmployeesByDepartmentAsync(string department, CancellationToken ct)
+           
+
+            public async Task<List<Employee>> GetEmployeesByDepartmentAsync(int departmentId, CancellationToken ct)
             {
-             return await context.Employees.Where(e => e.Department == department).OrderBy(e=>e.FirstName).ToListAsync(ct); 
+             return await context.Employees.Where(e => e.DepartmentId == departmentId).OrderBy(e=>e.FirstName).ToListAsync(ct); 
             }
 
             public async Task<IEnumerable<Employee>> GetByDepartmentAsync(CancellationToken ct)

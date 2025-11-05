@@ -19,6 +19,7 @@ public sealed class ApplicationDbContext : DbContext
     public DbSet<AttendanceRecord> Attendances {get;set;}
 
     public DbSet<Employee> Employees { get; set; }
+    public DbSet<Department> Departments { get; set; }
     
     public DbSet<PayrollRecord> PayrollRecords {get;set;}
     
