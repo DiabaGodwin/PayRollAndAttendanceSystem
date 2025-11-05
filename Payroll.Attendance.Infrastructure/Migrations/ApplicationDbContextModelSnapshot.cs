@@ -22,7 +22,7 @@ namespace Payroll.Attendance.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Payroll.Attendance.Domain.Models.Attendance", b =>
+            modelBuilder.Entity("Payroll.Attendance.Domain.Models.AttendanceRecord", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -30,38 +30,91 @@ namespace Payroll.Attendance.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("AttendanceDate")
+                    b.Property<DateTime?>("CheckIn")
                         .HasColumnType("datetime2");
 
-                    b.Property<TimeSpan?>("CheckInTime")
-                        .HasColumnType("time");
+                    b.Property<string>("CheckInLocation")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan?>("CheckOutTime")
-                        .HasColumnType("time");
-
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<DateTime?>("CheckOut")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("CheckOutLocation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeviceId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("EmployeeId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("LateMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
+                    b.Property<string>("IPAddress")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("OvertimeMinutes")
-                        .HasColumnType("int");
+                    b.Property<bool>("IsLate")
+                        .HasColumnType("bit");
 
-                    b.Property<int>("Status")
+                    b.Property<bool>("LeftEarly")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeSpan?>("TotalHours")
+                        .HasColumnType("time");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("AttendanceRecords");
+                    b.ToTable("Attendances");
+                });
+
+            modelBuilder.Entity("Payroll.Attendance.Domain.Models.Department", b =>
+                {
+                    b.Property<int?>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Departments");
                 });
 
             modelBuilder.Entity("Payroll.Attendance.Domain.Models.Employee", b =>
@@ -72,30 +125,73 @@ namespace Payroll.Attendance.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Allowance")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("BasicSalary")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
 
-                    b.Property<int>("Category")
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DepartmentId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Deduction")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Department")
+                    b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FullName")
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EmploymentType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("TopUp")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("HireDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JobPosition")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OtherName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayFrequency")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReportingManager")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Salary")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Surname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
 
                     b.ToTable("Employees");
                 });
@@ -188,7 +284,7 @@ namespace Payroll.Attendance.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValue(new DateTime(2025, 10, 28, 14, 41, 55, 893, DateTimeKind.Utc).AddTicks(1738));
+                        .HasDefaultValue(new DateTime(2025, 11, 5, 11, 10, 51, 79, DateTimeKind.Utc).AddTicks(2529));
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -224,7 +320,7 @@ namespace Payroll.Attendance.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Payroll.Attendance.Domain.Models.Attendance", b =>
+            modelBuilder.Entity("Payroll.Attendance.Domain.Models.AttendanceRecord", b =>
                 {
                     b.HasOne("Payroll.Attendance.Domain.Models.Employee", "Employee")
                         .WithMany()
@@ -233,6 +329,17 @@ namespace Payroll.Attendance.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("Payroll.Attendance.Domain.Models.Employee", b =>
+                {
+                    b.HasOne("Payroll.Attendance.Domain.Models.Department", "Department")
+                        .WithMany("Employees")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("Payroll.Attendance.Domain.Models.PayrollRecord", b =>
@@ -255,6 +362,11 @@ namespace Payroll.Attendance.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Payroll.Attendance.Domain.Models.Department", b =>
+                {
+                    b.Navigation("Employees");
                 });
 #pragma warning restore 612, 618
         }

@@ -14,8 +14,9 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         builder.Property(x => x.Email).IsRequired().HasMaxLength(255).IsUnicode(false);
         builder.Property(x => x.FirstName).IsRequired().HasMaxLength(255).IsUnicode(true);
         builder.Property(x => x.Surname).IsRequired().HasMaxLength(255).IsUnicode(true);
-        
-        
+        builder.HasOne(x=> x.Department).WithMany(x => x.Employees).HasForeignKey(x=>x.DepartmentId).OnDelete(DeleteBehavior.Cascade);
+
+
 
     }
 }

@@ -1,12 +1,14 @@
-
-using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Domain.Models;
 
-namespace Payroll.Attendance.Application.Repositories;
-public interface IAttendanceRepository
+namespace Payroll.Attendance.Application.Repositories
 {
-    Task RecordAttendanceAsync(Domain.Models.Attendance request, CancellationToken ct);
-    Task DeleteAttendanceAsync(int id,CancellationToken ct);
-    Task<Employee> GetAttendanceByEmployeeIdAsync(int empId, CancellationToken ct);
+    public interface IAttendanceRepository
+    {
+        Task<int> CheckIn(AttendanceRecord attendance, CancellationToken cancellationToken);
+        Task<IEnumerable<AttendanceRecord>> GetAllAsync(CancellationToken cancellationToken);
+        Task<AttendanceRecord?> GetByIdAsync(int id, CancellationToken cancellationToken);
+        Task DeleteAsync(int id, CancellationToken cancellationToken);
+        Task<int> CheckOut(int employeeId, CancellationToken cancellationToken);
+        
+    }
 }
-

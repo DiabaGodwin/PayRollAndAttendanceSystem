@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Payroll.Attendance.Application.Dto;
+using Payroll.Attendance.Application.Dto.Employee;
 using Payroll.Attendance.Application.Services;
 using Payroll.Attendance.Domain.Models;
 
@@ -9,44 +10,20 @@ namespace Payroll.Attendance.Api.Controllers
     [Route("api/[controller]")]
     public class EmployeeController(IEmployeeService service) : ControllerBase
     {
-        [HttpPost]
-        public async Task<IActionResult> AddEmployee([FromBody] AddEmployeeDto addEmployeeDto, CancellationToken cancellationToken)
+        [HttpPost("employee")]
+        public async Task<IActionResult> AddEmployee([FromBody] AddEmployeeDto request, CancellationToken cancellationToken)
         {
-            try
-            {
-                var result = await service.AddEmployeeAsync(addEmployeeDto, cancellationToken);
-
-                return CreatedAtAction(nameof(GetEmployeeById), new { id = result}, 
-                    new ApiResponse<int>
-                    {
-                      
-                        Message = " Employee Add successfully",
-                        StatusCode = StatusCodes.Status201Created,
-                        Data = 0
-                    }
-                
-                );
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse<string>
-
-                {
-                   
-                    Message = $"Error Adding employee; {ex.Message}",
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Data = 0
-
-                });
-
-            }
+            var result = await service.AddEmployeeAsync(request,cancellationToken);
+         return StatusCode(result.StatusCode,result);
         }
 
+      
+
      
-        [HttpGet]
-        public async Task<IActionResult> GetAllEmployees(EmployeeResponseDto cancellationToken)
+        [HttpGet("employee")]
+        public async Task<IActionResult> GetAllEmployees([FromQuery]PaginationRequest request, CancellationToken cancellationToken)
         {
-            var result = await service.GetAllEmployeesAsync(cancellationToken);
+            var result = await service.GetAllEmployeesAsync(request,cancellationToken);
             return Ok(result);
         }
 
@@ -62,20 +39,12 @@ namespace Payroll.Attendance.Api.Controllers
 
        
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] Employee updatedEmployee, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] UpdateEmployeeDto updatedEmployee, CancellationToken cancellationToken)
         {
-            var existingEmployee = await service.GetEmployeeByIdAsync(id, cancellationToken);
-            if (existingEmployee == null)
-                return NotFound($"Employee with ID {id} not found.");
-
-            
-            existingEmployee.FirstName = updatedEmployee.FirstName;
-            existingEmployee.Surname = updatedEmployee.Surname;
-            existingEmployee.Email = updatedEmployee.Email;
-            existingEmployee.Department = updatedEmployee.Department;
-
-            await service.UpdateEmployeeAsync(existingEmployee, cancellationToken);
-            return Ok(existingEmployee);
+          var employee = await service.GetEmployeeByIdAsync(id, cancellationToken);
+          if (employee == null)
+            return NotFound($"Employee with ID {id} not found.");
+          return Ok(employee);
         }
 
        

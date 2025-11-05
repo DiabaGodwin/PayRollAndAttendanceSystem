@@ -1,8 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using Payroll.Attendance.Domain.Enum;
-using Payroll.Attendance.Domain.Models;
 
-namespace Payroll.Attendance.Application.Dto;
+namespace Payroll.Attendance.Application.Dto.Employee;
 
 public class AddEmployeeDto
 { 
@@ -28,14 +26,15 @@ public class AddEmployeeDto
     [Required]
     public string? Address { get; set; }
     
-    public string? Department { get; set; }
+    public int DepartmentId { get; set; }
     public string? JobPosition { get; set; }
 
     [Required] public DateTime? HireDate { get; set; }
     [Required]
-    public EmploymentType EmploymentType { get; set; } 
+    public string? EmploymentType { get; set; } 
     [Range(0, double.MaxValue)]
     public string? Salary { get; set; }
-    public string PayFrequency { get; set; } = null!;
-    
+    public string? PayFrequency { get; set; }
+  
+
 }

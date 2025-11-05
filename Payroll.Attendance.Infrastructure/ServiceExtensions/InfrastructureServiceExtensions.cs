@@ -16,6 +16,9 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IEmployeeRepository, EmployeeRepository>();
         
         services.AddScoped<ICryptographyUtility,  CryptographyUtility>();
+        services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+        services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+        services.AddScoped<IDepartmentRepository, DepartmentRepository>();
         
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));

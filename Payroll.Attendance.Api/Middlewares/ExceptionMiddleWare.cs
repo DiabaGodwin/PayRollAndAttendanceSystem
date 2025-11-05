@@ -39,7 +39,6 @@ public class ExceptionMiddleware
         var response = new
             ApiResponse<object>
             {
-                IsSuccess = false,
                 Message = "An internal server error occurred",
                 StatusCode = 500,
             };
