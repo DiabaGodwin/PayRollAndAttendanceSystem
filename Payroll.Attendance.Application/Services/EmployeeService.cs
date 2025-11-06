@@ -8,16 +8,17 @@ using Payroll.Attendance.Application.Repositories;
 using Payroll.Attendance.Domain.Enum;
 using Payroll.Attendance.Domain.Models;
 
-   
+
 namespace Payroll.Attendance.Application.Services
 {
-    public class EmployeeService(IEmployeeRepository employeeRepository,ILogger<EmployeeService> logger) :IEmployeeService
+    public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<EmployeeService> logger)
+        : IEmployeeService
     {
         public async Task<ApiResponse<int>> AddEmployeeAsync(AddEmployeeDto addEmployeeDto, CancellationToken token)
         {
             logger.LogInformation("Adding new employee");
 
-            if (!Enum.TryParse<EmploymentType>(addEmployeeDto.EmploymentType, true, out  var employmentType ))
+            if (!Enum.TryParse<EmploymentType>(addEmployeeDto.EmploymentType, true, out var employmentType))
             {
                 return new ApiResponse<int>
                 {
@@ -31,15 +32,16 @@ namespace Payroll.Attendance.Application.Services
             {
                 return new ApiResponse<int>
                 {
-                    Message =  $"Invalid pay frequency {addEmployeeDto.PayFrequency}. Allowed values: {string.Join(", ", Enum.GetNames(typeof(PayFrequency)))}",
-                       
+                    Message =
+                        $"Invalid pay frequency {addEmployeeDto.PayFrequency}. Allowed values: {string.Join(", ", Enum.GetNames(typeof(PayFrequency)))}",
+
                     StatusCode = StatusCodes.Status400BadRequest,
                 };
             }
 
-         
-                
-                
+
+
+
             var employee = new Employee
             {
                 Title = addEmployeeDto.Title,
@@ -67,23 +69,24 @@ namespace Payroll.Attendance.Application.Services
                     StatusCode = StatusCodes.Status500InternalServerError
                 };
             }
-            
+
             return new ApiResponse<int>()
             {
                 StatusCode = StatusCodes.Status200OK,
-                
+
             };
         }
 
-        public async  Task<ApiResponse<List<EmployeeResponseDto>>> GetAllEmployeesAsync(PaginationRequest request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<EmployeeResponseDto>>> GetAllEmployeesAsync(PaginationRequest request,
+            CancellationToken cancellationToken)
         {
-            var res = await employeeRepository.GetAllEmployeesAsync(request,cancellationToken);
+            var res = await employeeRepository.GetAllEmployeesAsync(request, cancellationToken);
             var result = res.Adapt(new List<EmployeeResponseDto>());
             return new ApiResponse<List<EmployeeResponseDto>>
             {
                 Message = "Your request was succefully retrieved",
                 StatusCode = StatusCodes.Status200OK,
-                Data =  result
+                Data = result
             };
         }
         /*
@@ -93,7 +96,7 @@ namespace Payroll.Attendance.Application.Services
                 StatusCode = StatusCodes.Status400BadRequest,
             };
             */
-        
+
         public async Task<Employee> UpdateEmployeeAsync(Employee updateEmployeeDto,
             CancellationToken cancellationToken)
         {
@@ -102,17 +105,60 @@ namespace Payroll.Attendance.Application.Services
 
 
 
-        public async Task<Employee?> GetEmployeeByIdAsync(int id, CancellationToken token)
+        public async Task<ApiResponse<List<EmployeeResponseDto>>> GetEmployeeByIdAsync(int id,
+            CancellationToken cancellationToken)
         {
-            return await employeeRepository.GetEmployeeByIdAsync(id, token);
+            var res = await employeeRepository.GetEmployeeByIdAsync(id, cancellationToken);
+            var rseponse = res.Adapt(new List<EmployeeResponseDto>());
+
+            return new ApiResponse<List<EmployeeResponseDto>>()
+            {
+                Message = "Your request was successful retrieved",
+                StatusCode = StatusCodes.Status200OK
+
+            };
+
+
+        }
+
+
+
+        public async Task<ApiResponse<EmployeeBasicDto>> GetEmployeeBasicByIdAsync(int id,
+            CancellationToken cancellationToken)
+        {
+            var response = await employeeRepository.GetEmployeeBasicByIdAsync(id, cancellationToken);
+            if (response == null)
+            {
+                return new ApiResponse<EmployeeBasicDto>
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Data = null,
+                    Message = "Success"
+                };
+
+            }
+
+            var data = new EmployeeBasicDto()
+            {
+                Id = response.Id,
+                FullName = response.FirstName + " " + response.Surname,
+            };
+
+
+            return new ApiResponse<EmployeeBasicDto>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Data = data,
+                Message = "Success"
+            };
         }
 
         public async Task<bool> DeleteEmployeeAsync(int id, CancellationToken cancellationToken)
         {
-            return await employeeRepository.DeleteEmployeeAsync(id,  cancellationToken );
+            return await employeeRepository.DeleteEmployeeAsync(id, cancellationToken);
         }
-
-       
         
+        
+           
     }
 }

@@ -40,6 +40,9 @@ namespace Payroll.Attendance.Domain.Models
     {
         public int TotalEmployee { get; set; }
         public int NSSPersonnel { get; set; }
+        public int FullTime { get; set; }
+        public int PartTime { get; set; }
+        public int Others { get; set; } 
         public int interns { get; set; }
         public int ActiveEmployee {get; set; }
         public int InActiveEmployee { get; set; }

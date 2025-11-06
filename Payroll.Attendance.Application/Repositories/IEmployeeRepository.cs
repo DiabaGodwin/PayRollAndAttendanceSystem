@@ -9,7 +9,7 @@ namespace Payroll.Attendance.Application.Repositories
       
         Task<int> AddEmployeeAsync(Employee employee, CancellationToken  token);
         
-        Task<List<Employee>> GetAllEmployeesAsync(PaginationRequest request,CancellationToken cancellationToken);
+        Task<List<Employee>> GetAllEmployeesAsync(PaginationRequest request, CancellationToken cancellationToken);
         
         Task<Employee?> GetEmployeeByIdAsync(int id, CancellationToken cancellationToken);
         
@@ -24,5 +24,7 @@ namespace Payroll.Attendance.Application.Repositories
         Task<List<Employee>> GetEmployeesByDepartmentAsync(int departmentId, CancellationToken ct);
         Task<IEnumerable<Employee>> GetByDepartmentAsync(CancellationToken ct);
         */
+        Task<Employee?> GetEmployeeBasicByIdAsync(int id, CancellationToken cancellationToken);
+       
     }
 }

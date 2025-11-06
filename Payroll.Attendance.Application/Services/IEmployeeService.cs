@@ -7,11 +7,16 @@ namespace Payroll.Attendance.Application.Services;
 public interface IEmployeeService
 {
     Task<ApiResponse<int>> AddEmployeeAsync(AddEmployeeDto addEmployeeDto, CancellationToken token);
-    Task<ApiResponse<List<EmployeeResponseDto>>> GetAllEmployeesAsync(PaginationRequest request, CancellationToken cancellationToken);
+
+    Task<ApiResponse<List<EmployeeResponseDto>>> GetAllEmployeesAsync(PaginationRequest request,
+        CancellationToken cancellationToken);
 
     Task<Employee> UpdateEmployeeAsync(Employee updateEmployeeDto,
         CancellationToken cancellationToken);
 
-    Task<Employee?> GetEmployeeByIdAsync(int id, CancellationToken cancellationToken);
+    Task<ApiResponse<List<EmployeeResponseDto>>> GetEmployeeByIdAsync(int id,
+        CancellationToken cancellationToken);
+
+    Task<ApiResponse<EmployeeBasicDto>> GetEmployeeBasicByIdAsync(int id, CancellationToken cancellationToken);
     Task<bool> DeleteEmployeeAsync(int id, CancellationToken cancellationToken);
 }

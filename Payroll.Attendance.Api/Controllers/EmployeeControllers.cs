@@ -37,6 +37,13 @@ namespace Payroll.Attendance.Api.Controllers
             return Ok(employee);
         }
 
+        [HttpGet("employee/{id}")]
+        public async Task<IActionResult> GetEmployeeBasicById(int id, CancellationToken cancellationToken)
+        {
+            var result = await service.GetEmployeeBasicByIdAsync(id, cancellationToken);
+            return StatusCode(result.StatusCode,result);
+ 
+        }
        
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEmployee(int id, [FromBody] UpdateEmployeeDto updatedEmployee, CancellationToken cancellationToken)
