@@ -22,7 +22,8 @@
              return result;
             }
 
-            public async Task<List<Employee>> GetAllEmployeesAsync(PaginationRequest request, CancellationToken cancellationToken)
+            public async Task<List<Employee>> GetAllEmployeesAsync(PaginationRequest request,
+                CancellationToken cancellationToken)
             {
                 var query =  context.Employees.AsQueryable().AsNoTracking();
 
@@ -92,6 +93,8 @@
                 return employee;
             }
 
+          
+
             public async Task<Employee> GetByIdAsync(int employeeId)
             {
                var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == employeeId);
@@ -118,6 +121,9 @@
                 {
                     TotalEmployee = employee.Count,
                     NSSPersonnel = employee.Count(e => e.EmploymentType == "Nss"),
+                    FullTime = employee.Count(e => e.EmploymentType == "FullTime"),
+                    PartTime = employee.Count(e => e.EmploymentType == "PartTime"),
+                    Others = employee.Count(e=>e.EmploymentType == "Others"),
                     interns = employee.Count(e => e.EmploymentType == "Intern"),
                     ActiveEmployee = employee.Count(x => x.IsActive),
                     InActiveEmployee = employee.Count(e => e.IsActive==false)
