@@ -14,6 +14,8 @@ namespace Payroll.Attendance.Application.Services
     public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<EmployeeService> logger)
         : IEmployeeService
     {
+        private IEmployeeService _employeeServiceImplementation;
+
         public async Task<ApiResponse<int>> AddEmployeeAsync(AddEmployeeDto addEmployeeDto, CancellationToken token)
         {
             logger.LogInformation("Adding new employee");
@@ -157,8 +159,23 @@ namespace Payroll.Attendance.Application.Services
         {
             return await employeeRepository.DeleteEmployeeAsync(id, cancellationToken);
         }
-        
-        
-           
+
+        public Task<ApiResponse<List<EmployeeSummaryDto>>> GetEmployeeSummaryByIdAsync(int id, CancellationToken cancellationToken)
+        {
+            return _employeeServiceImplementation.GetEmployeeSummaryByIdAsync(id, cancellationToken);
+        }
+
+        public async Task<ApiResponse<List<EmployeeSummaryDto>>> GetEmployeeSummaryAsync(int id,
+            CancellationToken cancellationToken)
+        {
+            var res = await employeeRepository.GetEmployeeSummaryByIdAsync(id, cancellationToken);
+            var response = res.Adapt(new List<EmployeeSummaryDto>());
+            return new ApiResponse<List<EmployeeSummaryDto>>()
+            {
+                Message = "Your request was successful retrieved",
+                StatusCode = StatusCodes.Status200OK,
+                Data = response
+            };
+        }
     }
 }
