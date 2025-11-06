@@ -19,4 +19,5 @@ public interface IEmployeeService
 
     Task<ApiResponse<EmployeeBasicDto>> GetEmployeeBasicByIdAsync(int id, CancellationToken cancellationToken);
     Task<bool> DeleteEmployeeAsync(int id, CancellationToken cancellationToken);
+    Task<ApiResponse<List<EmployeeSummaryDto>>> GetEmployeeSummaryByIdAsync(int id, CancellationToken cancellationToken);
 }

@@ -15,6 +15,8 @@
         
         public class EmployeeRepository(ApplicationDbContext context) : IEmployeeRepository
         {
+            private IEmployeeRepository _employeeRepositoryImplementation;
+
             public async Task<int> AddEmployeeAsync(Employee employee, CancellationToken token)
             {
              await context.Employees.AddAsync(employee, token);
@@ -93,7 +95,11 @@
                 return employee;
             }
 
-          
+            public Task<EmployeeSummary> GetEmployeeSummaryByIdAsync(int id, CancellationToken cancellationToken)
+            {
+                return _employeeRepositoryImplementation.GetEmployeeSummaryByIdAsync(id, cancellationToken);
+            }
+
 
             public async Task<Employee> GetByIdAsync(int employeeId)
             {
@@ -114,7 +120,7 @@
                 return await context.Employees.FirstOrDefaultAsync(x => x.Id.ToString() == employeeId,ct);
             }
 
-            public async Task<EmployeeSummary?> GetByEmployeeSummaryAsync(string  username, CancellationToken ct)
+            public async Task<EmployeeSummary?> GetByEmployeeSummaryByIdAsync(int id, CancellationToken ct)
             {
                 var employee = await context.Employees.ToListAsync(ct);
                 return new EmployeeSummary

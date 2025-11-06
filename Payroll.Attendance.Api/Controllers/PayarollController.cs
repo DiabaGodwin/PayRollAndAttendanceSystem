@@ -7,12 +7,6 @@ namespace Payroll.Attendance.Api.Controllers
     [Route("api/[controller]")]
     public class PayrollController : ControllerBase
     {
-        private readonly PayrollService _payrollService;
-
-        public PayrollController(PayrollService payrollService)
-        {
-            _payrollService = payrollService;
-        }
-
+       
     }
 }

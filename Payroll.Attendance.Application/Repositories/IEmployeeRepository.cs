@@ -20,11 +20,14 @@ namespace Payroll.Attendance.Application.Repositories
         
         Task<Employee> GetByIdAsync(int employeeId);
         Task<Employee> GetByEmailAsync(string Email, CancellationToken ct);
-        Task<EmployeeSummary?> GetByEmployeeSummaryAsync( string sername, CancellationToken ct);
+        
         Task<List<Employee>> GetEmployeesByDepartmentAsync(int departmentId, CancellationToken ct);
         Task<IEnumerable<Employee>> GetByDepartmentAsync(CancellationToken ct);
         */
         Task<Employee?> GetEmployeeBasicByIdAsync(int id, CancellationToken cancellationToken);
        
+
+
+        Task<EmployeeSummary> GetEmployeeSummaryByIdAsync(int id, CancellationToken cancellationToken);
     }
 }
