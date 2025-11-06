@@ -107,6 +107,34 @@ namespace Payroll.Attendance.Application.Services
             return await employeeRepository.GetEmployeeByIdAsync(id, token);
         }
 
+        public async Task<ApiResponse<EmployeeBasicDto>> GetEmployeeBasicByIdAsync(int id, CancellationToken cancellationToken)
+        {
+            var response = await employeeRepository.GetEmployeeBasicByIdAsync(id, cancellationToken);
+            if (response == null)
+            {
+                return new ApiResponse<EmployeeBasicDto>
+                {
+                    StatusCode = StatusCodes.Status200OK,
+                    Data = null,
+                    Message = "Success"
+                };
+            }
+
+            var data = new EmployeeBasicDto()
+            {
+                Id = response.Id,
+                FullName = response.FirstName +" "+ response.Surname,
+            };
+            
+            
+            return new ApiResponse<EmployeeBasicDto>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Data = data,
+                Message = "Success"
+            };
+        }
+
         public async Task<bool> DeleteEmployeeAsync(int id, CancellationToken cancellationToken)
         {
             return await employeeRepository.DeleteEmployeeAsync(id,  cancellationToken );

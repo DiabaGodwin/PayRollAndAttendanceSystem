@@ -24,5 +24,6 @@ namespace Payroll.Attendance.Application.Repositories
         Task<List<Employee>> GetEmployeesByDepartmentAsync(int departmentId, CancellationToken ct);
         Task<IEnumerable<Employee>> GetByDepartmentAsync(CancellationToken ct);
         */
+        Task<Employee?> GetEmployeeBasicByIdAsync(int id, CancellationToken cancellationToken);
     }
 }

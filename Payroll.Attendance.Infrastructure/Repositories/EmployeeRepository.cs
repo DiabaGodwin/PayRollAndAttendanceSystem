@@ -2,6 +2,7 @@
     using Azure.Core;
     using Microsoft.EntityFrameworkCore;
     using Payroll.Attendance.Application.Dto;
+    using Payroll.Attendance.Application.Dto.Employee;
     using Payroll.Attendance.Application.Repositories;
     using Payroll.Attendance.Domain.Enum;
     using Payroll.Attendance.Domain.Models;
@@ -83,6 +84,12 @@
                 context.Employees.Remove(employee);
                 await context.SaveChangesAsync(cancellationToken);
                 return true;
+            }
+
+            public async Task<Employee?> GetEmployeeBasicByIdAsync(int id, CancellationToken cancellationToken)
+            {
+                var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+                return employee;
             }
 
             public async Task<Employee> GetByIdAsync(int employeeId)
