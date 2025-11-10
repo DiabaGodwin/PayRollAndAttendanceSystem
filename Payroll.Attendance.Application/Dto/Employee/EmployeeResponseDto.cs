@@ -19,7 +19,7 @@ public class EmployeeResponseDto
    
     public string? JobPosition { get; set; }
     public DateTime? HireDate { get; set; }
-    public string EmploymentType { get; set; } 
+    public string? EmploymentType { get; set; } 
     public string? ReportingManager { get; set; }
     public string? Salary { get; set; }
     public string PayFrequency { get; set; } = null!;
