@@ -7,7 +7,7 @@ public class EmployeeSummaryDto
     public int FullTime { get; set; }
     public int PartTime { get; set; }
     public int Others { get; set; } 
-    public int interns { get; set; }
+    public int Interns { get; set; }
     public int ActiveEmployee {get; set; }
     public int InActiveEmployee { get; set; }
 }

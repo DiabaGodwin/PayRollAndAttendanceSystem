@@ -1,8 +1,9 @@
 namespace Payroll.Attendance.Application.Dto.Employee;
 
-public class EmployeeBasicDto
+public class EmployeeIdAndNameDto
 {
     public int Id { get; set; }
-   public string? FullName { get; set; }
-    
+   
+    public string? FullName { get; set; }
+
 }
