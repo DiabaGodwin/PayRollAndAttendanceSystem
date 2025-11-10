@@ -15,8 +15,6 @@
         
         public class EmployeeRepository(ApplicationDbContext context) : IEmployeeRepository
         {
-            private IEmployeeRepository _employeeRepositoryImplementation;
-
             public async Task<int> AddEmployeeAsync(Employee employee, CancellationToken token)
             {
              await context.Employees.AddAsync(employee, token);
@@ -89,18 +87,40 @@
                 return true;
             }
 
-            public async Task<Employee?> GetEmployeeBasicByIdAsync(int id, CancellationToken cancellationToken)
+            public async  Task<List<EmployeeIdAndNameDto>> GetEmployeeIdAndName(string? searchText, CancellationToken cancellationToken)
             {
-                var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-                return employee;
+                var query = context.Employees.AsQueryable().AsNoTracking();
+
+                if (!string.IsNullOrEmpty(searchText))
+                    return await query
+                        .Select(x => new EmployeeIdAndNameDto
+                            {
+                                Id = x.Id,
+                                FullName = x.Title+ " " + x.FirstName + " " + x.Surname.Trim(),
+                            }
+                        )
+                        .OrderBy(x => x.FullName)
+                        .ToListAsync(cancellationToken);
+                {
+                    var searchTerm = searchText.Trim().ToLower();
+                    query = query.Where(x =>
+                        x.FirstName.Contains(searchText) ||
+                        x.Surname.Contains(searchText) ||
+                        x.OtherName != null && x.OtherName.Contains(searchText));
+                }
+                return await query
+                    .Select(x => new EmployeeIdAndNameDto
+                        {
+                            Id = x.Id,
+                            FullName = x.Title + x.FirstName + " " + x.Surname.Trim(),
+                        }
+                    )
+                    .OrderBy(x => x.FullName)
+                    .ToListAsync(cancellationToken);
             }
 
-            public Task<EmployeeSummary> GetEmployeeSummaryByIdAsync(int id, CancellationToken cancellationToken)
-            {
-                return _employeeRepositoryImplementation.GetEmployeeSummaryByIdAsync(id, cancellationToken);
-            }
-
-
+          
+ 
             public async Task<Employee> GetByIdAsync(int employeeId)
             {
                var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == employeeId);
@@ -115,14 +135,14 @@
 
            
 
-            public async Task<Employee?> GetByIdAsync(string employeeId, CancellationToken ct)
+            public async Task<Employee> GetByIdAsync(string employeeId, CancellationToken ct)
             {
                 return await context.Employees.FirstOrDefaultAsync(x => x.Id.ToString() == employeeId,ct);
             }
 
-            public async Task<EmployeeSummary?> GetByEmployeeSummaryByIdAsync(int id, CancellationToken ct)
+            public async Task<EmployeeSummary?> GetEmployeeSummaryAsync(CancellationToken cancellationToken)
             {
-                var employee = await context.Employees.ToListAsync(ct);
+                var employee = await context.Employees.ToListAsync(cancellationToken);
                 return new EmployeeSummary
                 {
                     TotalEmployee = employee.Count,

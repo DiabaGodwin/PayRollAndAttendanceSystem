@@ -1,4 +1,5 @@
 using Payroll.Attendance.Application.Dto;
+using Payroll.Attendance.Application.Dto.Employee;
 using Payroll.Attendance.Domain.Enum;
 using Payroll.Attendance.Domain.Models;
 
@@ -24,10 +25,10 @@ namespace Payroll.Attendance.Application.Repositories
         Task<List<Employee>> GetEmployeesByDepartmentAsync(int departmentId, CancellationToken ct);
         Task<IEnumerable<Employee>> GetByDepartmentAsync(CancellationToken ct);
         */
-        Task<Employee?> GetEmployeeBasicByIdAsync(int id, CancellationToken cancellationToken);
+        Task<List<EmployeeIdAndNameDto>> GetEmployeeIdAndName(string? searchText, CancellationToken cancellationToken);
        
 
 
-        Task<EmployeeSummary> GetEmployeeSummaryByIdAsync(int id, CancellationToken cancellationToken);
+        Task<EmployeeSummary> GetEmployeeSummaryAsync(CancellationToken cancellationToken);
     }
 }
