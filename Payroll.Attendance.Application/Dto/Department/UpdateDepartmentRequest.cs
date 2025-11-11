@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Payroll.Attendance.Application.Dto;
+namespace Payroll.Attendance.Application.Dto.Department;
 
-public class UpdateDepartmentDto
+public class UpdateDepartmentRequest
 {
     [Required]
     public int Id { get; set; }

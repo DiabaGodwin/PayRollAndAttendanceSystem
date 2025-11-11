@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Payroll.Attendance.Application.Dto.Employee;
 
-public class UpdateEmployeeDto
+public class UpdateEmployeeRequest
 {
     [Required]
     public string Title { get; set; } = null!;

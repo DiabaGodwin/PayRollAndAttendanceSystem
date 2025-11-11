@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Payroll.Attendance.Application.Dto;
+using Payroll.Attendance.Application.Dto.Attendance;
 using Payroll.Attendance.Application.Repositories;
 using Payroll.Attendance.Domain.Models;
 
