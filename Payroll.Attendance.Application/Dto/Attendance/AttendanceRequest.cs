@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace Payroll.Attendance.Application.Dto;
+namespace Payroll.Attendance.Application.Dto.Attendance;
 
 
 public class AttendanceRequest

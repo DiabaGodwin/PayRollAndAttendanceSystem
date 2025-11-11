@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Payroll.Attendance.Application.Dto;
+using Payroll.Attendance.Application.Dto.Department;
 using Payroll.Attendance.Application.Dto.Employee;
 using Payroll.Attendance.Application.Repositories;
 using Payroll.Attendance.Domain.Enum;
@@ -138,37 +139,37 @@ public class DepartmentService(IDepartmentRepository departmentRepository,ILogge
     }
     
 
-    public async Task<ApiResponse<bool>> UpdateDepartmentAsync(UpdateDepartmentDto updateDepartmentDto,
+    public async Task<ApiResponse<bool>> UpdateDepartmentAsync(UpdateDepartmentRequest updateDepartmentRequest,
         CancellationToken cancellationToken)
     {
          try
          {
              
-                var existingDepartment = await departmentRepository.GetDepartmentByIdAsync(updateDepartmentDto.Id, false, cancellationToken);
+                var existingDepartment = await departmentRepository.GetDepartmentByIdAsync(updateDepartmentRequest.Id, false, cancellationToken);
                 if (existingDepartment == null)
                 {
                     return new ApiResponse<bool>
                     {
                       
-                        Message = $"Department with ID {updateDepartmentDto.Id} not found",
+                        Message = $"Department with ID {updateDepartmentRequest.Id} not found",
                         StatusCode = StatusCodes.Status404NotFound
                     };
                 }
 
                
-                var departmentWithSameName = await departmentRepository.GetDepartmentByNameAsync(updateDepartmentDto.Name.Trim(), cancellationToken);
-                if (departmentWithSameName != null && departmentWithSameName.Id != updateDepartmentDto.Id)
+                var departmentWithSameName = await departmentRepository.GetDepartmentByNameAsync(updateDepartmentRequest.Name.Trim(), cancellationToken);
+                if (departmentWithSameName != null && departmentWithSameName.Id != updateDepartmentRequest.Id)
                 {
                     return new ApiResponse<bool>
                     {
                        
-                        Message = $"Department with name '{updateDepartmentDto.Name}' already exists",
+                        Message = $"Department with name '{updateDepartmentRequest.Name}' already exists",
                         StatusCode = StatusCodes.Status400BadRequest
                     };
                 }
 
                
-                updateDepartmentDto.Adapt(existingDepartment);
+                updateDepartmentRequest.Adapt(existingDepartment);
                 existingDepartment.UpdatedAt = DateTime.UtcNow;
 
                 var result = await departmentRepository.UpdateDepartmentAsync(existingDepartment, cancellationToken);
@@ -183,7 +184,7 @@ public class DepartmentService(IDepartmentRepository departmentRepository,ILogge
          }
          catch (System.Exception ex)
          {
-                logger.LogError(ex, "Error updating department {Id}", updateDepartmentDto.Id);
+                logger.LogError(ex, "Error updating department {Id}", updateDepartmentRequest.Id);
                 return new ApiResponse<bool>
                 {
                     

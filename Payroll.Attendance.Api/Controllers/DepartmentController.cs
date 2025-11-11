@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Payroll.Attendance.Application.Dto;
+using Payroll.Attendance.Application.Dto.Department;
 using Payroll.Attendance.Application.Services;
 
 namespace Payroll.Attendance.Api.Controllers;
@@ -32,10 +33,10 @@ public class DepartmentController(IDepartmentService service) : ControllerBase
     }
 
     [HttpPut("updatedepartment")]
-    public async Task<IActionResult> UpdateDepartment([FromBody] UpdateDepartmentDto updateDepartmentDto,
+    public async Task<IActionResult> UpdateDepartment([FromBody] UpdateDepartmentRequest updateDepartmentRequest,
         CancellationToken cancellationToken)
     {
-        var response = await service.UpdateDepartmentAsync(updateDepartmentDto, cancellationToken);
+        var response = await service.UpdateDepartmentAsync(updateDepartmentRequest, cancellationToken);
         return StatusCode(response.StatusCode, response);
     }
 

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Dto.Employee;
 using Payroll.Attendance.Application.Services;
-using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Api.Controllers
 {
@@ -24,17 +23,15 @@ namespace Payroll.Attendance.Api.Controllers
         public async Task<IActionResult> GetAllEmployees([FromQuery]PaginationRequest request, CancellationToken cancellationToken)
         {
             var result = await service.GetAllEmployeesAsync(request,cancellationToken);
-            return Ok(result);
+            return StatusCode(result.StatusCode,result);
         }
 
       
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEmployeeById(int id, CancellationToken cancellationToken)
         {
-            var employee = await service.GetEmployeeByIdAsync(id, cancellationToken);
-            if (employee == null)
-                return NotFound($"Employee with ID {id} not found.");
-            return Ok(employee);
+            var result = await service.GetEmployeeByIdAsync(id, cancellationToken);
+            return StatusCode(result.StatusCode,result);
         }
 
         [HttpGet("employee/IdAndName")]
@@ -51,26 +48,23 @@ namespace Payroll.Attendance.Api.Controllers
             var result = await service.GetEmployeeSummaryAsync(cancellationToken );
             return StatusCode(result.StatusCode,result);
         }
-       
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] UpdateEmployeeDto updatedEmployee, CancellationToken cancellationToken)
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] UpdateEmployeeRequest updatedEmployee,
+            CancellationToken cancellationToken)
         {
-          var employee = await service.GetEmployeeByIdAsync(id, cancellationToken);
-          if (employee == null)
-            return NotFound($"Employee with ID {id} not found.");
-          return Ok(employee);
+            var result = await service.UpdateEmployeeAsync(id,updatedEmployee,  cancellationToken);
+            return StatusCode(result.StatusCode,result);
         }
+        
+            
 
        
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id, CancellationToken cancellationToken)
-        {
-            var existingEmployee = await service.GetEmployeeByIdAsync(id, cancellationToken);
-            if (existingEmployee == null)
-                return NotFound($"Employee with ID {id} not found.");
-
-            await service.DeleteEmployeeAsync(id, cancellationToken);
-            return NoContent();
+        { 
+            var result  = await service.DeleteEmployeeAsync(id, cancellationToken);
+            return StatusCode(result.StatusCode,result);
         }
     }
 }

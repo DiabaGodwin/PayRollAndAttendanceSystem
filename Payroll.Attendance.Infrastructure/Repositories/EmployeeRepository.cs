@@ -1,10 +1,7 @@
-
-    using Azure.Core;
-    using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
     using Payroll.Attendance.Application.Dto;
     using Payroll.Attendance.Application.Dto.Employee;
     using Payroll.Attendance.Application.Repositories;
-    using Payroll.Attendance.Domain.Enum;
     using Payroll.Attendance.Domain.Models;
     using Payroll.Attendance.Infrastructure.Data;
 
@@ -32,15 +29,15 @@
                     query= query.Where(x=>
                         x.EmploymentType.Contains(request.SearchText) ||
                         x.FirstName.Contains(request.SearchText) ||
-                        x.OtherName.Contains(request.SearchText) || 
-                        x.JobPosition.Contains(request.SearchText) ||
+                        x.OtherName!.Contains(request.SearchText) || 
+                        x.JobPosition!.Contains(request.SearchText) ||
                         x.Surname.Contains( request.SearchText)  ||
                         x.Email.Contains(request.SearchText) ||
-                        x.PayFrequency.Contains(request.SearchText) ||
+                        x.PayFrequency!.Contains(request.SearchText) ||
                         x.PhoneNumber.Contains(request.SearchText) ||
-                        x.ReportingManager.Contains(request.SearchText) ||
-                        x.Salary.Contains(request.SearchText) ||
-                        x.Address.Contains(request.SearchText)
+                        x.ReportingManager!.Contains(request.SearchText) ||
+                        x.Salary!.Contains(request.SearchText) ||
+                        x.Address!.Contains(request.SearchText)
                         
                         
                         );
@@ -67,24 +64,36 @@
                 return employee;
             }
 
-            public async Task<Employee> UpdateEmployeeAsync(Employee employee, CancellationToken cancellationToken)
-            { 
-                context.Entry(employee).State = EntityState.Modified;
-                employee.UpdatedAt = DateTime.UtcNow;
-                context.SaveChangesAsync(cancellationToken);
-               return employee;
-               
+            public async Task<bool> UpdateEmployeeAsync(int id,UpdateEmployeeRequest request, CancellationToken cancellationToken)
+            {
+                await context.Employees.Where(x => x.Id == id).ExecuteUpdateAsync(y => y
+                        .SetProperty(x => x.UpdatedAt, DateTime.UtcNow)
+                        .SetProperty(x => x.JobPosition, request.JobPosition)
+                        .SetProperty(x => x.Surname, request.Surname)
+                        .SetProperty(x => x.FirstName, request.FirstName)
+                        .SetProperty(x=> x.PayFrequency, request.PayFrequency)
+                        .SetProperty(x => x.PhoneNumber, request.PhoneNumber)
+                        .SetProperty(x => x.Email, request.Email)   
+                        .SetProperty(x=> x.Salary, request.Salary)
+                        .SetProperty(x => x.Address, request.Address)
+                        .SetProperty(x=>x.Title, request.Title)
+                        .SetProperty(x=>x.OtherName, request.OtherName)
+                        .SetProperty(x=>x.DateOfBirth, request.DateOfBirth)
+                        .SetProperty(x=> x.DepartmentId, request.DepartmentId)
+                        .SetProperty(x=> x.EmploymentType, request.EmploymentType)
+                    
+                    , cancellationToken);
+                var result = await context.SaveChangesAsync(cancellationToken);
+                return result > 0;
             }
 
             public async Task<bool> DeleteEmployeeAsync(int id, CancellationToken cancellationToken)
             {
-                var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-                if (employee == null)
-                
-                    return false;
-                context.Employees.Remove(employee);
-                await context.SaveChangesAsync(cancellationToken);
-                return true;
+                await context.Employees.Where(x => x.Id == id)
+                    .ExecuteUpdateAsync(x => x
+                    .SetProperty(y=> y.IsActive,false),cancellationToken);
+                var result = await context.SaveChangesAsync(cancellationToken);
+                return result > 0;
             }
 
             public async  Task<List<EmployeeIdAndNameDto>> GetEmployeeIdAndName(string? searchText, CancellationToken cancellationToken)
@@ -102,7 +111,7 @@
                         .OrderBy(x => x.FullName)
                         .ToListAsync(cancellationToken);
                 {
-                    var searchTerm = searchText.Trim().ToLower();
+                    var searchTerm = searchText!.Trim().ToLower();
                     query = query.Where(x =>
                         x.FirstName.Contains(searchText) ||
                         x.Surname.Contains(searchText) ||
@@ -121,13 +130,13 @@
 
           
  
-            public async Task<Employee> GetByIdAsync(int employeeId)
+            public async Task<Employee?> GetByIdAsync(int employeeId)
             {
                var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == employeeId);
                return employee;
             }
 
-            public async Task<Employee> GetByEmailAsync(string email, CancellationToken ct)
+            public async Task<Employee?> GetByEmailAsync(string email, CancellationToken ct)
             { 
                 var employee = await context.Employees.FirstOrDefaultAsync(x => x.Email == email, ct);
                 return employee;
@@ -135,7 +144,7 @@
 
            
 
-            public async Task<Employee> GetByIdAsync(string employeeId, CancellationToken ct)
+            public async Task<Employee?> GetByIdAsync(string employeeId, CancellationToken ct)
             {
                 return await context.Employees.FirstOrDefaultAsync(x => x.Id.ToString() == employeeId,ct);
             }
@@ -146,11 +155,11 @@
                 return new EmployeeSummary
                 {
                     TotalEmployee = employee.Count,
-                    NSSPersonnel = employee.Count(e => e.EmploymentType == "Nss"),
+                    NssPersonnel = employee.Count(e => e.EmploymentType == "Nss"),
                     FullTime = employee.Count(e => e.EmploymentType == "FullTime"),
                     PartTime = employee.Count(e => e.EmploymentType == "PartTime"),
                     Others = employee.Count(e=>e.EmploymentType == "Others"),
-                    interns = employee.Count(e => e.EmploymentType == "Intern"),
+                    Interns = employee.Count(e => e.EmploymentType == "Intern"),
                     ActiveEmployee = employee.Count(x => x.IsActive),
                     InActiveEmployee = employee.Count(e => e.IsActive==false)
                 };

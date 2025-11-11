@@ -1,4 +1,4 @@
-namespace Payroll.Attendance.Application.Dto
+namespace Payroll.Attendance.Application.Dto.Attendance
 {
     public class AttendanceSummaryDto
     {
