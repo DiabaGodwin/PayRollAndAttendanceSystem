@@ -17,8 +17,8 @@ public class DepartmentService(IDepartmentRepository departmentRepository,ILogge
     {
         try
         {
-            var existingDepartment = await departmentRepository.GetDepartmentByNameAsync(createDepartmentDto.Name.Trim(), cancellationToken);
-            if (existingDepartment != null)
+            var response = await departmentRepository.GetDepartmentByNameAsync(createDepartmentDto.Name.Trim(), cancellationToken);
+            if (response != null)
             {
                 return new ApiResponse<int>
                 {
@@ -58,86 +58,50 @@ public class DepartmentService(IDepartmentRepository departmentRepository,ILogge
         
     }
 
-    public async Task<ApiResponse<List<DepartmentResponseDto>>> GetAllDepartmentsAsync(bool includeEmployees = false,
-        CancellationToken cancellationToken = default)
+    public async Task<ApiResponse<List<DepartmentResponseDto>>> GetAllDepartmentsAsync(CancellationToken cancellationToken)
     {
-        try
+        var departments = await departmentRepository.GetAllDepartmentsAsync(cancellationToken);
+        var data = departments.Adapt(new List<DepartmentResponseDto>());
+
+        
+        return new ApiResponse<List<DepartmentResponseDto>>
         {
-            var departments = await departmentRepository.GetAllDepartmentsAsync(includeEmployees, cancellationToken);
-            var departmentResponseDtos = departments.Adapt<List<DepartmentResponseDto>>();
-            return new ApiResponse<List<DepartmentResponseDto>>
+            Message = "All departments successfully",
+            StatusCode = StatusCodes.Status200OK,
+            Data = data
+        };
+
+    }
+
+    //Todo: Complete this method
+    public async Task<ApiResponse<DepartmentResponseDto>> GetDepartmentByIdAsync(int id, CancellationToken cancellationToken)
+    {
+        var response = await departmentRepository.GetDepartmentByIdAsync(id, cancellationToken);
+        var result = response.Adapt<DepartmentResponseDto>();
+        
+        if (response == null)
+        {
+            return new ApiResponse<DepartmentResponseDto>()
             {
-                Message = "All departments successfully",
                 StatusCode = StatusCodes.Status200OK,
+                Message = "Request was successfully retrieved",
+                Data = result
             };
-
-
-
-        }
-        catch (System.Exception ex)
-        {
-            logger.LogError( "Error retrieving all departments.", ex);
-            return new ApiResponse<List<DepartmentResponseDto>>
-            {
-                Message = " An error retrieving  the departments.",
-                StatusCode = StatusCodes.Status500InternalServerError
-            };
-        }
-    }
-
-    public Task<ApiResponse<DepartmentResponseDto>> GetDepartmentByIdAsync(int id, bool includeEmployees = false, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<ApiResponse<DepartmentResponseDto>> GetDepartmentAsync(int id, bool includeEmployees = false, CancellationToken cancellationToken = default) 
-    {
-        try
-        {
-            var department = await departmentRepository.GetDepartmentByIdAsync(id, includeEmployees, cancellationToken);
-            if (department == null)
-            {
-                return new ApiResponse<DepartmentResponseDto>()
-                {
-                    Message = "Department with ID {id} not found.",
-                    StatusCode = StatusCodes.Status404NotFound
-                };
-            }
-            var dto = department.Adapt<DepartmentResponseDto>();
-            dto.Employees = new List<DepartmentEmployeeDto>(department.Employees?.Count ?? 0);
-            if (includeEmployees && department.Employees != null)
-            {
-                dto.Employees = department.Employees.Select(x => new DepartmentEmployeeDto
-
-                {
-                    Id = x.Id,
-                    FullName = $"{x.FirstName} {x.Surname}",
-                    Email = x.Email,
-                    JobPosition = x.JobPosition,
-
-                }).ToList();
-            }
-
-            return new ApiResponse<DepartmentResponseDto>
-                {
-                    Message = "Department retrieved is successfully.",
-                    StatusCode = StatusCodes.Status404NotFound
-                };
             
-
-
         }
-        catch (System.Exception e)
+
+        return new ApiResponse<DepartmentResponseDto>()
         {
-            logger.LogError( "Error retrieving department with ID {id}.", id);
-            return new ApiResponse<DepartmentResponseDto>
-            {
-                Message = "An occur error retrieving department.",
-                StatusCode = StatusCodes.Status500InternalServerError
-            };
-        }
+            StatusCode = StatusCodes.Status400BadRequest,
+            Message = "Request failed",
+            Data = null
+        };
+        ; 
     }
     
+    
+    
+
 
     public async Task<ApiResponse<bool>> UpdateDepartmentAsync(UpdateDepartmentRequest updateDepartmentRequest,
         CancellationToken cancellationToken)
@@ -145,7 +109,7 @@ public class DepartmentService(IDepartmentRepository departmentRepository,ILogge
          try
          {
              
-                var existingDepartment = await departmentRepository.GetDepartmentByIdAsync(updateDepartmentRequest.Id, false, cancellationToken);
+                var existingDepartment = await departmentRepository.GetDepartmentByIdAsync(updateDepartmentRequest.Id, cancellationToken);
                 if (existingDepartment == null)
                 {
                     return new ApiResponse<bool>

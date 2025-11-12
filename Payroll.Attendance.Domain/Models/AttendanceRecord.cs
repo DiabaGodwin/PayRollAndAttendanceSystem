@@ -8,6 +8,7 @@ namespace Payroll.Attendance.Domain.Models;
 public class AttendanceRecord
 {
     public int Id { get; set; }
+   
     public int EmployeeId { get; set; }
 
     public DateTime Date { get; set; } = DateTime.UtcNow.Date;
@@ -29,6 +30,7 @@ public class AttendanceRecord
     public DateTime? UpdatedAt { get; set; }
     public int? CreatedBy { get; set; }
     public int? UpdatedBy { get; set; }
+    public bool IsActive { get; set; } = true;
 
     [ForeignKey(nameof(EmployeeId))]
     public Employee Employee { get; set; }

@@ -1,5 +1,7 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Repositories;
 using Payroll.Attendance.Domain.Models;
 using Payroll.Attendance.Infrastructure.Data;
@@ -14,7 +16,7 @@ public class DepartmentRepository(ApplicationDbContext context, ILogger<Departme
         return await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<List<Department>> GetAllDepartmentsAsync(bool includeEmployees = false, CancellationToken cancellationToken = default)
+    public async Task<List<Department>> GetAllDepartmentsAsync( CancellationToken cancellationToken = default)
     {
         var quary =  context.Departments.AsQueryable();
         quary = quary.Include(x => x.Employees);
@@ -24,12 +26,10 @@ public class DepartmentRepository(ApplicationDbContext context, ILogger<Departme
     public async Task<List<Department>> GetAllOnlyDepartmentsAsync(CancellationToken cancellationToken = default)
         => await context.Departments.AsNoTracking().ToListAsync(cancellationToken);
 
-    public async Task<Department?> GetDepartmentByIdAsync(int id, bool includeEmployee = false,
+    public async Task<Department?> GetDepartmentByIdAsync(int id,
         CancellationToken cancellationToken = default)
     {
-        var quary = context.Departments.AsQueryable();
-        quary = quary.Include(x => x.Employees);
-        return await quary.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        return await context.Departments.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task<Department?> GetDepartmentByNameAsync(string name, CancellationToken cancellationToken = default)
@@ -60,6 +60,16 @@ public class DepartmentRepository(ApplicationDbContext context, ILogger<Departme
         }
     }
 
+    public Task<bool> DeleteDepartmentAsync(Expression<Func<Department, bool>> id, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> DepartmentExistsAsync(Expression<Func<Department, bool>> id, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<bool> DeleteDepartmentAsync(int id, CancellationToken cancellationToken)
     {
         try
@@ -85,7 +95,6 @@ public class DepartmentRepository(ApplicationDbContext context, ILogger<Departme
         try
         {
             return await context.Departments.AsNoTracking().AnyAsync(x => x.Id == id, cancellationToken);
-            
         }
         catch (Exception e)
         {

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Dto.Attendance;
 using Payroll.Attendance.Application.Services;
-using Payroll.Attendance.Domain.Models;
 
 
 namespace Payroll.Attendance.Api.Controllers;

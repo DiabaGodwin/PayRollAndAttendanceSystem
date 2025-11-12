@@ -20,16 +20,23 @@ public class DepartmentController(IDepartmentService service) : ControllerBase
     [HttpGet("departments")]
     public async Task<IActionResult> GetAllDepartments(CancellationToken cancellationToken = default)
     {
+        var response = await service.GetAllDepartmentsAsync(cancellationToken);
+        return StatusCode(response.StatusCode, response);
+    }
+    
+    [HttpGet("name-and-id")]
+    public async Task<IActionResult> GetDepartmentNameAndId(CancellationToken cancellationToken = default)
+    {
         var response = await service.GetAllOnlyDepartmentsAsync(cancellationToken);
         return StatusCode(response.StatusCode, response);
     }
 
     [HttpGet("department/{id}")]
-    public async Task<IActionResult> GetDepartmentById(int id, [FromRoute] bool includeEmployees = false,
-        CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetDepartmentById(int id, [FromRoute] 
+        CancellationToken cancellationToken)
     {
-        var response = await service.GetDepartmentByIdAsync(id, includeEmployees, cancellationToken);
-            return StatusCode(response.StatusCode);
+        var response = await service.GetDepartmentByIdAsync(id, cancellationToken);
+            return StatusCode(response.StatusCode,response);
     }
 
     [HttpPut("updatedepartment")]
