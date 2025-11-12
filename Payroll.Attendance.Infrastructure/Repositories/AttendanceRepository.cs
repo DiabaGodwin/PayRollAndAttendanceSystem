@@ -27,13 +27,16 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
         return res;
     }
 
-    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
+    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        var result = await dbContext.Attendances.FindAsync(id, cancellationToken);
-        if (result is null) return;
-        dbContext.Attendances.Remove(result);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        
+       await dbContext.Attendances.Where(x => x.Id == id)
+           .ExecuteUpdateAsync(x=> x.
+               SetProperty(y=>y.IsActive,false),cancellationToken);
+       var result = await dbContext.SaveChangesAsync(cancellationToken);
+       return result > 0;
+
+
+
     }
 
     public async Task<int> CheckOut(int employeeId, CancellationToken cancellationToken)

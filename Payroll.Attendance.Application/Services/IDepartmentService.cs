@@ -7,14 +7,14 @@ namespace Payroll.Attendance.Application.Services;
 public interface IDepartmentService
 {
     Task<ApiResponse<int>> CreateDepartmentAsync(CreateDepartmentDto createDepartmentDto, CancellationToken cancellationToken);
-    Task<ApiResponse<List<DepartmentResponseDto>>> GetAllDepartmentsAsync(bool includeEmployees = false,
-        CancellationToken cancellationToken = default);
-    Task<ApiResponse<DepartmentResponseDto>> GetDepartmentByIdAsync(int id, bool includeEmployees = false, CancellationToken cancellationToken = default);
+    Task<ApiResponse<List<DepartmentResponseDto>>> GetAllDepartmentsAsync(
+        CancellationToken cancellationToken );
+    Task<ApiResponse<DepartmentResponseDto>> GetDepartmentByIdAsync(int id, CancellationToken cancellationToken );
     Task<ApiResponse<bool>> UpdateDepartmentAsync(UpdateDepartmentRequest updateDepartmentRequest,
         CancellationToken cancellationToken);
     Task<ApiResponse<bool>> DeleteDepartmentAsync(int id, CancellationToken cancellationToken);
 
     Task<ApiResponse<List<GetOnlyDepartmentDto>>> GetAllOnlyDepartmentsAsync(
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken );
 
 }

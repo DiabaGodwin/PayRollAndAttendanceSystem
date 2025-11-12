@@ -72,6 +72,7 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
         return new ApiResponse<int>()
         {
             StatusCode = StatusCodes.Status200OK,
+            Message = "Successfully added employee",
 
         };
     }
