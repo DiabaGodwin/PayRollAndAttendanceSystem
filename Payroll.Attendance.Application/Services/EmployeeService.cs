@@ -89,13 +89,9 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
             Data = result
         };
     }
-    /*
-        return new ApiResponse<EmployeeResponseDto>()
-        {
-            Message = "An error occur when requesting",
-            StatusCode = StatusCodes.Status400BadRequest,
-        };
-        */
+    
+        
+        
 
     public async Task<ApiResponse<bool>> UpdateEmployeeAsync(int id, UpdateEmployeeRequest request,CancellationToken cancellationToken)
     {
@@ -130,7 +126,7 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
         {
             Message = "Your request was successful retrieved",
             StatusCode = StatusCodes.Status200OK,
-            Data=response
+            Data = response
     
         };
 
@@ -164,7 +160,6 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
         {
             Message = "Your request was successful deleted",
             StatusCode = StatusCodes.Status200OK,
-         
             Data = result
         };
     }

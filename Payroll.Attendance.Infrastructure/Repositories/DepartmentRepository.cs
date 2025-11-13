@@ -16,7 +16,7 @@ public class DepartmentRepository(ApplicationDbContext context, ILogger<Departme
         return await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<List<Department>> GetAllDepartmentsAsync( CancellationToken cancellationToken = default)
+    public async Task<List<Department>> GetAllDepartmentsAsync(PaginationRequest request, CancellationToken cancellationToken = default)
     {
         var quary =  context.Departments.AsQueryable();
         quary = quary.Include(x => x.Employees);

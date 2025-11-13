@@ -7,7 +7,7 @@ namespace Payroll.Attendance.Application.Services;
 public interface IDepartmentService
 {
     Task<ApiResponse<int>> CreateDepartmentAsync(CreateDepartmentDto createDepartmentDto, CancellationToken cancellationToken);
-    Task<ApiResponse<List<DepartmentResponseDto>>> GetAllDepartmentsAsync(
+    Task<ApiResponse<List<DepartmentResponseDto>>> GetAllDepartmentsAsync(PaginationRequest request,
         CancellationToken cancellationToken );
     Task<ApiResponse<DepartmentResponseDto>> GetDepartmentByIdAsync(int id, CancellationToken cancellationToken );
     Task<ApiResponse<bool>> UpdateDepartmentAsync(UpdateDepartmentRequest updateDepartmentRequest,

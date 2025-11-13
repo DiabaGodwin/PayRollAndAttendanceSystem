@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Payroll.Attendance.Application.Dto;
-using Payroll.Attendance.Application.Dto.Attendance;
+using Payroll.Attendance.Application.Dto.AttendanceRecord;
 using Payroll.Attendance.Application.Repositories;
 using Payroll.Attendance.Domain.Models;
 
@@ -8,12 +8,13 @@ namespace Payroll.Attendance.Application.Services;
 
 public class AttendanceService(IAttendanceRepository repository) : IAttendanceService
 {
-    public async Task<ApiResponse<int>> CheckIn(AttendanceRequest request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<int>> CheckIn( AttendanceRequest request,  CancellationToken cancellationToken)
     {
       
         var startTime = DateTime.UtcNow.Date.AddHours(8);  
         var record = new AttendanceRecord
         {
+            EmployeeId = request.EmployeeId,
             CheckIn = DateTime.UtcNow,
             Date = DateTime.UtcNow.Date,
             IsLate = DateTime.UtcNow > startTime
@@ -21,13 +22,13 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
         
          var result = await repository.CheckIn(record, cancellationToken);
          if (result < 1)
-         {
-             return new ApiResponse<int>()
-             {
-                 Message = "Failed to check in",
-                 Data = record.Id,
-                 StatusCode = StatusCodes.Status500InternalServerError
-             };
+         { return new ApiResponse<int>()
+                       {
+                           Message = "Failed to check in",
+                           Data = record.Id,
+                           StatusCode = StatusCodes.Status500InternalServerError
+                       };
+            
          }
 
         return new ApiResponse<int>

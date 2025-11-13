@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Payroll.Attendance.Application.Dto;
-using Payroll.Attendance.Application.Dto.Attendance;
+using Payroll.Attendance.Application.Dto.AttendanceRecord;
 using Payroll.Attendance.Application.Services;
 
 

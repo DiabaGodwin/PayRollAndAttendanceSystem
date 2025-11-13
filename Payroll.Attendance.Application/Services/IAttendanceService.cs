@@ -1,5 +1,5 @@
 using Payroll.Attendance.Application.Dto;
-using Payroll.Attendance.Application.Dto.Attendance;
+using Payroll.Attendance.Application.Dto.AttendanceRecord;
 using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Application.Services;

@@ -14,7 +14,7 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
        return result;
     }
 
-    public async Task<AttendanceRecord> GetByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<AttendanceRecord?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         var result = await dbContext.Attendances.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         return result;
@@ -27,20 +27,18 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
         return res;
     }
 
-    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken)
     {
-       await dbContext.Attendances.Where(x => x.Id == id)
-           .ExecuteUpdateAsync(x=> x.
-               SetProperty(y=>y.IsActive,false),cancellationToken);
-       var result = await dbContext.SaveChangesAsync(cancellationToken);
-       return result > 0;
-
-
-
+       var result = await dbContext.Attendances.FindAsync(id, cancellationToken);
+       if (result is null) return;
+       dbContext.Attendances.Remove(result);
+       await dbContext.SaveChangesAsync(cancellationToken);
+       
     }
 
     public async Task<int> CheckOut(int employeeId, CancellationToken cancellationToken)
     {
+        var today = DateTime.UtcNow.Date;
         var result = await dbContext.Attendances.FirstOrDefaultAsync(x=> x.EmployeeId==employeeId && x.CreatedAt == DateTime.Today,cancellationToken);
         if (result is null) return 0;
         result.CheckOut = DateTime.UtcNow;
