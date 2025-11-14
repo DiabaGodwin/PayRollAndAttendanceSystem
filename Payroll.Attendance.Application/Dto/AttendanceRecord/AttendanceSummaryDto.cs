@@ -6,6 +6,8 @@ namespace Payroll.Attendance.Application.Dto.AttendanceRecord
         public int PresentToday { get; set; }
         public int LateArrivals { get; set; }
         public int Absent { get; set; }
+        
+     
      
     }
 }

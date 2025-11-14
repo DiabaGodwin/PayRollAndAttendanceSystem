@@ -1,3 +1,4 @@
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Dto.AttendanceRecord;
@@ -39,14 +40,26 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
         };
     }
 
-    public async Task<ApiResponse<IEnumerable<AttendanceRecord>>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<ApiResponse<List<AttendanceResponseDto>>> GetAllAsync(PaginationRequest request, CancellationToken cancellationToken)
     {
-        var result = await repository.GetAllAsync(cancellationToken);
-        return new ApiResponse<IEnumerable<AttendanceRecord>>
+        var res = await repository.GetAllAsync(request, cancellationToken);
+        var response = new List<AttendanceResponseDto>();
+        foreach (var r in res)
+        {
+            var result = r.Adapt(new AttendanceResponseDto());
+            if(r.Employee != null)
+            {
+                result.FirstName= r.Employee.FirstName;
+                result.Surname = r.Employee.Surname;
+                
+            }
+            response.Add(result);
+        }
+        return new ApiResponse<List<AttendanceResponseDto>>
         {
             Message = "All attendance records fetched",
-            Data = result,
-            StatusCode = StatusCodes.Status200OK
+            StatusCode = StatusCodes.Status200OK,
+            Data = response
         };
     }
 
@@ -78,13 +91,14 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
            return new ApiResponse<int>()
            {
                Message = "Employee not found",
-               StatusCode = StatusCodes.Status400BadRequest
+               StatusCode = StatusCodes.Status404NotFound
            };
        }
        return new ApiResponse<int>
        {
             Message = $"Record updated successfully",
-            StatusCode = StatusCodes.Status200OK
+            StatusCode = StatusCodes.Status200OK,
+            Data = result
         };
        
     }
@@ -105,11 +119,12 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
         var today = DateTime.UtcNow.Date;
         var lateThreshold = new TimeSpan(8, 10, 0); 
 
-        // Fetch all attendance records for today
-        var todayRecords = await repository.GetAllAsync(cancellationToken);
+        // Fetch all attendance records for today   
+        var todayRecords = await repository.GetAllSummaryAsync(cancellationToken);
+        
         var recordsToday = todayRecords.Where(a => a.Date == today).ToList();
 
-        var presentToday = recordsToday.Count(r => r.CheckIn != null);
+        var presentToday = recordsToday.Count(r => r.CheckIn.HasValue);
         var lateArrivals = recordsToday.Count(r => r.CheckIn.HasValue && r.CheckIn.Value.TimeOfDay > lateThreshold);
         var totalEmployees = 100;
       
@@ -123,7 +138,7 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
             PresentToday = presentToday,
             LateArrivals = lateArrivals,
             Absent = absent,
-           
+         
         };
 
         return new ApiResponse<AttendanceSummaryDto>

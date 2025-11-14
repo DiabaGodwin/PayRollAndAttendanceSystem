@@ -14,9 +14,9 @@ public class AttendanceController(IAttendanceService service) : ControllerBase
 
 {
     [HttpGet]
-    public async Task<ActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult> GetAll([FromQuery]PaginationRequest request, CancellationToken cancellationToken)
     {
-        var result = await service.GetAllAsync(cancellationToken);
+        var result = await service.GetAllAsync(request, cancellationToken);
         return StatusCode(result.StatusCode,result);
     }
 
