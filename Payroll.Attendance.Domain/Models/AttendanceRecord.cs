@@ -26,8 +26,9 @@ public class AttendanceRecord
     public string? DeviceId { get; set; }
     public string? IPAddress { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    // public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public int? CreatedBy { get; set; }
     public int? UpdatedBy { get; set; }
     public bool IsActive { get; set; } = true;

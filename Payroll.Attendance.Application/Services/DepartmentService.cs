@@ -58,9 +58,9 @@ public class DepartmentService(IDepartmentRepository departmentRepository,ILogge
         
     }
 
-    public async Task<ApiResponse<List<DepartmentResponseDto>>> GetAllDepartmentsAsync(CancellationToken cancellationToken)
+    public async Task<ApiResponse<List<DepartmentResponseDto>>> GetAllDepartmentsAsync(PaginationRequest request, CancellationToken cancellationToken)
     {
-        var departments = await departmentRepository.GetAllDepartmentsAsync(cancellationToken);
+        var departments = await departmentRepository.GetAllDepartmentsAsync(request, cancellationToken);
         var data = departments.Adapt(new List<DepartmentResponseDto>());
 
         

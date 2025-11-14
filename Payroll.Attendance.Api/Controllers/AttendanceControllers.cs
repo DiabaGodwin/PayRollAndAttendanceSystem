@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Payroll.Attendance.Application.Dto;
-using Payroll.Attendance.Application.Dto.Attendance;
+using Payroll.Attendance.Application.Dto.AttendanceRecord;
 using Payroll.Attendance.Application.Services;
 
 
@@ -14,9 +14,9 @@ public class AttendanceController(IAttendanceService service) : ControllerBase
 
 {
     [HttpGet]
-    public async Task<ActionResult> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult> GetAll([FromQuery]PaginationRequest request, CancellationToken cancellationToken)
     {
-        var result = await service.GetAllAsync(cancellationToken);
+        var result = await service.GetAllAsync(request, cancellationToken);
         return StatusCode(result.StatusCode,result);
     }
 

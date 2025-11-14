@@ -1,4 +1,4 @@
-namespace Payroll.Attendance.Application.Dto.Attendance
+namespace Payroll.Attendance.Application.Dto.AttendanceRecord
 {
     public class AttendanceSummaryDto
     {
@@ -6,6 +6,8 @@ namespace Payroll.Attendance.Application.Dto.Attendance
         public int PresentToday { get; set; }
         public int LateArrivals { get; set; }
         public int Absent { get; set; }
+        
+     
      
     }
 }

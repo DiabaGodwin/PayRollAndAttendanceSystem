@@ -18,9 +18,9 @@ public class DepartmentController(IDepartmentService service) : ControllerBase
     }
 
     [HttpGet("departments")]
-    public async Task<IActionResult> GetAllDepartments(CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetAllDepartments([FromQuery]PaginationRequest request, CancellationToken cancellationToken = default)
     {
-        var response = await service.GetAllDepartmentsAsync(cancellationToken);
+        var response = await service.GetAllDepartmentsAsync(request, cancellationToken);
         return StatusCode(response.StatusCode, response);
     }
     

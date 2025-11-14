@@ -29,14 +29,14 @@ using Microsoft.EntityFrameworkCore;
                     query= query.Where(x=>
                         x.EmploymentType.Contains(request.SearchText) ||
                         x.FirstName.Contains(request.SearchText) ||
-                        x.OtherName!.Contains(request.SearchText) || 
+                        x.OtherName.Contains(request.SearchText) || 
                         x.JobPosition!.Contains(request.SearchText) ||
                         x.Surname.Contains( request.SearchText)  ||
                         x.Email.Contains(request.SearchText) ||
-                        x.PayFrequency!.Contains(request.SearchText) ||
+                        x.PayFrequency.Contains(request.SearchText) ||
                         x.PhoneNumber.Contains(request.SearchText) ||
                         x.ReportingManager!.Contains(request.SearchText) ||
-                        x.Salary!.Contains(request.SearchText) ||
+                        x.Salary.Contains(request.SearchText) ||
                         x.Address!.Contains(request.SearchText)
                         
                         
@@ -54,7 +54,7 @@ using Microsoft.EntityFrameworkCore;
                     .Skip(skip)
                     .Take(request.PageSize)
                     .ToListAsync(cancellationToken);
-                return data;
+                return data; 
             }
 
 

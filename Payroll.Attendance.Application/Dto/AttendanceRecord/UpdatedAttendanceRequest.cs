@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Payroll.Attendance.Application.Dto;
+namespace Payroll.Attendance.Application.Dto.AttendanceRecord;
 
 
 public class UpdatedAttendanceRequest

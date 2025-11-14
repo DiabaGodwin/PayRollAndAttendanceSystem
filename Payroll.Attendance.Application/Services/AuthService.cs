@@ -44,6 +44,7 @@ public class AuthService(
                 UserName = request.UserName,
                 FirstName = request.FirstName,
                 SurName = request.SurName,
+                
             };
             await repository.AddUser(newUser, cancellationToken);
             return new ApiResponse<int>()

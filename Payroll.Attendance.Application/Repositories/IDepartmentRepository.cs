@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Application.Repositories;
@@ -6,7 +7,7 @@ namespace Payroll.Attendance.Application.Repositories;
 public interface IDepartmentRepository
 {
     Task<int> CreateDepartment(Department department, CancellationToken cancellationToken);
-    Task<List<Department>> GetAllDepartmentsAsync(CancellationToken cancellationToken = default);
+    Task<List<Department>> GetAllDepartmentsAsync(PaginationRequest request, CancellationToken cancellationToken = default);
     Task<List<Department>> GetAllOnlyDepartmentsAsync( CancellationToken cancellationToken = default);
     Task<Department?> GetDepartmentByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<Department> GetDepartmentByNameAsync(string name,  CancellationToken cancellationToken = default);

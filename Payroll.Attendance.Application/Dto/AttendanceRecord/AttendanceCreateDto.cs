@@ -1,4 +1,4 @@
-namespace Payroll.Attendance.Application.Dto.Attendance;
+namespace Payroll.Attendance.Application.Dto.AttendanceRecord;
 
 public class AttendanceCreateDto
 {

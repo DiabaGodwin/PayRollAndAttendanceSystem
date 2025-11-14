@@ -16,11 +16,30 @@ public class DepartmentRepository(ApplicationDbContext context, ILogger<Departme
         return await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<List<Department>> GetAllDepartmentsAsync( CancellationToken cancellationToken = default)
+    public async Task<List<Department>> GetAllDepartmentsAsync(PaginationRequest request, CancellationToken cancellationToken = default)
     {
-        var quary =  context.Departments.AsQueryable();
-        quary = quary.Include(x => x.Employees);
-        return await quary.OrderBy(x=>x.Name).AsNoTracking().ToListAsync(cancellationToken);
+        var query =  context.Departments.AsQueryable();
+        if (!string.IsNullOrEmpty(request.SearchText))
+        {
+            query= query.Where(x=>
+                x.Name.Contains(request.SearchText)
+                        
+                        
+            );
+        }
+
+        if (request.StartDate.HasValue && request.EndDate.HasValue)
+        {
+            query = query.Where(x =>x.CreatedAt >= request.StartDate && x.CreatedAt <= request.EndDate);
+        }
+                
+        int skip = (request.PageNumber - 1) * request.PageSize;
+                
+        var data = await query
+            .Skip(skip)
+            .Take(request.PageSize)
+            .ToListAsync(cancellationToken);
+        return data; 
     }
 
     public async Task<List<Department>> GetAllOnlyDepartmentsAsync(CancellationToken cancellationToken = default)

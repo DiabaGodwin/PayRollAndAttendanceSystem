@@ -1,4 +1,4 @@
-namespace Payroll.Attendance.Application.Dto;
+namespace Payroll.Attendance.Application.Dto.AttendanceRecord;
 
 public class CheckOutRequest
 {

@@ -14,4 +14,5 @@ public class AddUserRequest
     public string Password { get; set; } = null!;
     [Required] public string FirstName { get; set; } = null!;
     [Required] public string SurName { get; set; } = null!;
+    
 }
