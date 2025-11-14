@@ -126,7 +126,7 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
 
         var presentToday = recordsToday.Count(r => r.CheckIn.HasValue);
         var lateArrivals = recordsToday.Count(r => r.CheckIn.HasValue && r.CheckIn.Value.TimeOfDay > lateThreshold);
-        var totalEmployees = 100;
+        var totalEmployees = await repository.CountAsync(cancellationToken);
       
 
         var absent = totalEmployees - presentToday;

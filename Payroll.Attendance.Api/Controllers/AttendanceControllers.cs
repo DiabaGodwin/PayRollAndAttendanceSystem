@@ -28,7 +28,7 @@ public class AttendanceController(IAttendanceService service) : ControllerBase
         
     }  
     
- 
+    [AllowAnonymous]
     [HttpPost("CheckIn")]
     public async Task<IActionResult> Add([FromBody] AttendanceRequest request, CancellationToken cancellationToken)
     {
@@ -36,6 +36,7 @@ public class AttendanceController(IAttendanceService service) : ControllerBase
         return StatusCode(result.StatusCode,result);
     }
     
+    [AllowAnonymous]
     [HttpPut("checkout")]
     public async Task<IActionResult> CheckOut([FromBody] UpdatedAttendanceRequest request, CancellationToken cancellationToken)
     {

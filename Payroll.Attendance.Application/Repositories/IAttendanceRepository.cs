@@ -14,6 +14,7 @@ namespace Payroll.Attendance.Application.Repositories
         
         Task<IEnumerable<AttendanceRecord>> GetByDateAsync(DateTime date, CancellationToken cancellationToken);
         Task<List<AttendanceRecord>> GetAllSummaryAsync(CancellationToken cancellationToken);
+        Task<int> CountAsync(CancellationToken cancellationToken);
      
         
     }

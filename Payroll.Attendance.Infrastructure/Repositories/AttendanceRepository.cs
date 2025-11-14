@@ -76,5 +76,9 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
     {
         return await dbContext.Attendances.Include(x => x.Employee).ToListAsync(cancellationToken);
     }
-    
+
+    public async Task<int> CountAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Employees.CountAsync((cancellationToken));
+    }
 }
