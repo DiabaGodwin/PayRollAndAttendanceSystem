@@ -7,7 +7,7 @@ public interface IAttendanceService
 {
     Task<ApiResponse<int>> CheckIn(AttendanceRequest request, CancellationToken cancellationToken);
     Task<ApiResponse<List<AttendanceResponseDto>>> GetAllAsync(PaginationRequest request, CancellationToken cancellationToken);
-    Task<ApiResponse<AttendanceRecord?>> GetByIdAsync(int id, CancellationToken cancellationToken);
+    Task<ApiResponse<AttendanceResponseDto>> GetByIdAsync(int id, CancellationToken cancellationToken);
     Task<ApiResponse<int>> CheckOutAsync(UpdatedAttendanceRequest request, CancellationToken cancellationToken);
 
     Task<ApiResponse<int>> DeleteAsync(int id, CancellationToken cancellationToken);

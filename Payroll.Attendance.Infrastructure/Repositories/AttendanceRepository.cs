@@ -34,15 +34,15 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
 
     public async Task<AttendanceRecord?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        var result = await dbContext.Attendances.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        var result = await dbContext.Attendances.Include(e=>e.Employee).FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         return result;
     }
 
-    public async Task<int> CheckIn(AttendanceRecord attendanceRecord, CancellationToken cancellationToken)
+    public async Task<int> CheckIn(AttendanceRecord record, CancellationToken cancellationToken)
     {
-        var result = await dbContext.Attendances.AddAsync(attendanceRecord, cancellationToken);
+        var result = await dbContext.Attendances.AddAsync(record, cancellationToken);
         var res = await dbContext.SaveChangesAsync(cancellationToken);
-        return res;
+        return record.Id;
     }
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken)
@@ -57,19 +57,24 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
     public async Task<int> CheckOut(int employeeId, CancellationToken cancellationToken)
     {
         var today = DateTime.UtcNow.Date;
-        var result = await dbContext.Attendances.FirstOrDefaultAsync(x=> x.EmployeeId==employeeId && x.Date == today,cancellationToken);
-        if (result is null) return 0;
+        var next = today.AddDays(1);
+        var result = await dbContext.Attendances.FirstOrDefaultAsync(x=>
+            x.EmployeeId==employeeId && x.Date >= today && x.Date < next,cancellationToken);
+        
+        if (result == null) return 0;
         result.CheckOut = DateTime.UtcNow;
-        dbContext.Attendances.Update(result);
+        result.UpdatedAt = DateTime.UtcNow;
         await dbContext.SaveChangesAsync(cancellationToken);
         return result.Id;
     }
     
-    public async Task<IEnumerable<AttendanceRecord>> GetByDateAsync(DateTime date, CancellationToken cancellationToken)
+    public async Task<AttendanceRecord?> GetByDateAsync(int employeeId, DateTime date,
+        CancellationToken cancellationToken)
     {
+        var next = date.AddDays(1); 
         return await dbContext.Attendances
-            .Where(a => a.Date == date)
-            .ToListAsync(cancellationToken);
+            .Where(a => a.Date >= date && a.Date < next && a.EmployeeId == employeeId)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<List<AttendanceRecord>> GetAllSummaryAsync(CancellationToken cancellationToken)
