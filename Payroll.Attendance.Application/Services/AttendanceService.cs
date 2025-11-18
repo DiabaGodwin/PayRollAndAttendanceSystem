@@ -1,4 +1,5 @@
 using Mapster;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Dto.AttendanceRecord;
@@ -11,6 +12,17 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
 {
     public async Task<ApiResponse<int>> CheckIn( AttendanceRequest request,  CancellationToken cancellationToken)
     {
+        var existingRecord =
+            await repository.GetByDateAsync(request.EmployeeId, 
+                DateTime.UtcNow.Date, cancellationToken);
+        if (existingRecord != null )
+        {
+            return new ApiResponse<int>()
+            {
+                Message = "Employee has already checked in today",
+                StatusCode = StatusCodes.Status409Conflict
+            };
+        }
       
         var startTime = DateTime.UtcNow.Date.AddHours(8);  
         var record = new AttendanceRecord
@@ -23,12 +35,13 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
         
          var result = await repository.CheckIn(record, cancellationToken);
          if (result < 1)
-         { return new ApiResponse<int>()
-                       {
-                           Message = "Failed to check in",
-                           Data = record.Id,
-                           StatusCode = StatusCodes.Status500InternalServerError
-                       };
+         { 
+             return new ApiResponse<int>()
+               {
+                   Message = "Failed to check in",
+                   Data = record.Id,
+                   StatusCode = StatusCodes.Status500InternalServerError
+               };
             
          }
 
@@ -63,29 +76,60 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
         };
     }
 
-    public async Task<ApiResponse<AttendanceRecord?>> GetByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<ApiResponse<AttendanceResponseDto>> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        var result = await repository.GetByIdAsync(id, cancellationToken);
-        if (result == null)
+        var res = await repository.GetByIdAsync(id, cancellationToken);
+        if (res == null)
         {
-            return new ApiResponse<AttendanceRecord?>
+            return new ApiResponse<AttendanceResponseDto>()
             {
-                Message = "Record not found",
+                Message = "Record Not Found",
                 StatusCode = StatusCodes.Status404NotFound
             };
         }
 
-        return new ApiResponse<AttendanceRecord?>
+        var result = res.Adapt(new AttendanceResponseDto());
+
+        if (res.Employee != null)
         {
-            Data = result,
-            StatusCode = StatusCodes.Status200OK
-        };
+            result.FirstName = res.Employee.FirstName;
+            result.Surname = res.Employee.Surname;
+        }
+
+        return new ApiResponse<AttendanceResponseDto>()
+        {
+            Message = "Your Request was successfull",
+            StatusCode = StatusCodes.Status200OK,
+            Data = result
+        }; 
+
     }
 
     public async Task<ApiResponse<int>> CheckOutAsync(UpdatedAttendanceRequest request, CancellationToken cancellationToken)
     {
-       var result =  await repository.CheckOut(request.EmployeeId, cancellationToken);
+         
+       
+       var existingRecord = await repository.GetByDateAsync(request.EmployeeId, DateTime.UtcNow.Date, cancellationToken);
+       
+       if (existingRecord == null || existingRecord.CheckIn == null)
+       {
+           return new ApiResponse<int>()
+           {
+               Message = "Employee has not checked in",
+               StatusCode = StatusCodes.Status400BadRequest
+           };
+       }
 
+       if (existingRecord.CheckOut != null)
+       {
+           return new ApiResponse<int>()
+           {
+               Message = "Employee has already checked out",
+               StatusCode = StatusCodes.Status409Conflict
+           };
+       }
+       
+       var result =  await repository.CheckOut(request.EmployeeId, cancellationToken);
        if (result == 0)
        {
            return new ApiResponse<int>()
@@ -122,7 +166,7 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
         // Fetch all attendance records for today   
         var todayRecords = await repository.GetAllSummaryAsync(cancellationToken);
         
-        var recordsToday = todayRecords.Where(a => a.Date == today).ToList();
+        var recordsToday = todayRecords.Where(a => a.Date >= today && a.Date < today.AddDays(1)).ToList();
 
         var presentToday = recordsToday.Count(r => r.CheckIn.HasValue);
         var lateArrivals = recordsToday.Count(r => r.CheckIn.HasValue && r.CheckIn.Value.TimeOfDay > lateThreshold);
