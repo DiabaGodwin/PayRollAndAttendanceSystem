@@ -32,6 +32,8 @@ public class DepartmentRepository(ApplicationDbContext context, ILogger<Departme
         {
             query = query.Where(x =>x.CreatedAt >= request.StartDate && x.CreatedAt <= request.EndDate);
         }
+
+        query = query.OrderByDescending(x => x.CreatedAt);
                 
         int skip = (request.PageNumber - 1) * request.PageSize;
                 

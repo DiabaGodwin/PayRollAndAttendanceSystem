@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Payroll.Attendance.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using Payroll.Attendance.Infrastructure.Data;
 namespace Payroll.Attendance.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251120091220_create tables for payroll")]
+    partial class createtablesforpayroll
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -221,6 +224,10 @@ namespace Payroll.Attendance.Infrastructure.Migrations
                     b.Property<int>("EmployeeId")
                         .HasColumnType("int");
 
+                    b.Property<string>("EmploymentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -248,7 +255,6 @@ namespace Payroll.Attendance.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PayslipPath")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Tax")
@@ -318,7 +324,7 @@ namespace Payroll.Attendance.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValue(new DateTime(2025, 11, 20, 16, 4, 25, 175, DateTimeKind.Utc).AddTicks(6923));
+                        .HasDefaultValue(new DateTime(2025, 11, 20, 9, 12, 18, 952, DateTimeKind.Utc).AddTicks(9190));
 
                     b.Property<string>("Email")
                         .IsRequired()

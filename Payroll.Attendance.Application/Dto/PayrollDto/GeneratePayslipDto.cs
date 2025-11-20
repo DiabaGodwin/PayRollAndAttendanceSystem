@@ -9,8 +9,8 @@ public class GeneratePayslipDto
     public int Id { get; set; }
         
     public int EmployeeId { get; set; }
-    public Domain.Models.Employee Employee { get; set; }
-    public DateTime Payperiod { get; set; }
+    
+    public DateTime PayPeriod { get; set; }
         
   
     public decimal BasicSalary { get; set; }
@@ -34,6 +34,10 @@ public class GeneratePayslipDto
         
     public string PayslipPath { get; set; }
     public string PayslipNumber { get; set; }
-    public string EmplooymentType { get; set; }
+   
+    
+    public string? FirstName { get; set; }
+    public string? Surname { get; set; }
+    public string? Email { get; set; }
     
 }

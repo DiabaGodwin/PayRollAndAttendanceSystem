@@ -1,11 +1,13 @@
-namespace Payroll.Attendance.Application.Dto.PayrollRecordDto;
+using Payroll.Attendance.Domain.Enum;
+
+namespace Payroll.Attendance.Application.Dto.PayrollDto;
 
 public class CreatePayrollDto
 {
    
     public int EmployeeId { get; set; }
-    public Domain.Models.Employee? Employee { get; set; }
-    public DateTime Payperiod { get; set; }
+
+    public DateTime PayPeriod { get; set; }
         
    
     public decimal BasicSalary { get; set; }
@@ -16,8 +18,10 @@ public class CreatePayrollDto
 
     public decimal Loan { get; set; }
    
-    public decimal Deduction { get; set; }  
-        
-    
+    public decimal Deduction { get; set; }
+    public string PayrollStatus { get; set; } = "Pending";
+  
+
+
 
 }

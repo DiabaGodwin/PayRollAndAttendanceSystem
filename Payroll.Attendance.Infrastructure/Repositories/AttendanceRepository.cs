@@ -10,17 +10,23 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
 {
     public async Task<List<AttendanceRecord>> GetAllAsync(PaginationRequest request, CancellationToken cancellationToken)
     {
-        var query = dbContext.Attendances .Include(a => a.Employee).AsQueryable();
+        var query = dbContext.Attendances .Include(a => a.Employee)
+            .ThenInclude(x=>x.Department).AsQueryable();
         
         if (!string.IsNullOrEmpty(request.SearchText))
             query = query.Where(x => 
                 x.Employee.FirstName.Contains(request.SearchText) ||
-                x.Employee.Surname.Contains(request.SearchText)
+                x.Employee.Surname.Contains(request.SearchText) ||
+                x.Employee.Department.Name.Contains(request.SearchText)
+                
             );
         if (request.StartDate.HasValue && request.EndDate.HasValue)
         {
              query = query.Where(x =>x.CreatedAt >= request.StartDate && x.CreatedAt <= request.EndDate);
         }
+
+
+        query = query.OrderByDescending(x => x.Date).ThenByDescending(x=> x.CheckIn);
         
         int skip = (request.PageNumber - 1) * request.PageSize;
                 
