@@ -29,6 +29,6 @@ public class PayrollResponseDto
         
     public string PayslipPath { get; set; }
     public string PayslipNumber { get; set; }
-    public string EmplooymentType { get; set; }
+  
 
 }

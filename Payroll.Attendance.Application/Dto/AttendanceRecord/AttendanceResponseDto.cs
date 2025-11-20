@@ -11,6 +11,7 @@ public class AttendanceResponseDto
     public DateTime Date { get; set; } = DateTime.UtcNow.Date;
     public DateTime? CheckIn { get; set; }
     public DateTime? CheckOut { get; set; }
+    public string? Department { get; set; }
 
     public TimeSpan? TotalHours { get; set; }
     public bool IsLate { get; set; }

@@ -1,43 +1,45 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Payroll.Attendance.Domain.Models
 {
     public class PayrollRecord
     {
         public int Id { get; set; }
-        
         [Required]
-        [Key]
+        [ForeignKey((nameof(Models.Employee)))]
         public int EmployeeId { get; set; }
         public Employee? Employee { get; set; }
-        public DateTime Payperiod { get; set; }
-        
-        [Range(0, double.MaxValue)]
+        public DateTime PayPeriod { get; set; }
+       
+        [Column(TypeName = "decimal(18,2)")]
         public decimal BasicSalary { get; set; }
-        [Range(0, double.MaxValue)]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Allowance { get; set; }
-        [Range(0, double.MaxValue)]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Tax { get; set; }
-        [Range(0, double.MaxValue)]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Loan { get; set; }
-        [Range(0, double.MaxValue)]
-        public decimal Deduction { get; set; }  
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Deduction { get; set; } 
         
+        public int Month { get; set; }
+        public int Year { get; set; }
         
+        [Column(TypeName = "decimal(18,2)")]
         public decimal TotalDeduction { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
         public decimal NetPay { get; set; }
-        
-        public string PayrollStatus { get; set; } 
+        public string PayrollStatus { get; set; } = "Pending"; 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } 
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsActive { get; set; } = true;
+        
         public DateTime PaidDate { get; set; }
         
         public string PayslipPath { get; set; }
         public string PayslipNumber { get; set; }
-        public string EmplooymentType { get; set; }
-
-
-
+        
     }
 
     public class PayrollSummary

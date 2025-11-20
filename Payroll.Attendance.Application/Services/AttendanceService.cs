@@ -60,12 +60,9 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
         foreach (var r in res)
         {
             var result = r.Adapt(new AttendanceResponseDto());
-            if(r.Employee != null)
-            {
-                result.FirstName= r.Employee.FirstName;
-                result.Surname = r.Employee.Surname;
-                
-            }
+            result.FirstName= r.Employee.FirstName;
+            result.Surname = r.Employee.Surname;
+            result.Department = r.Employee.Department?.Name;
             response.Add(result);
         }
         return new ApiResponse<List<AttendanceResponseDto>>
@@ -166,7 +163,7 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
         // Fetch all attendance records for today   
         var todayRecords = await repository.GetAllSummaryAsync(cancellationToken);
         
-        var recordsToday = todayRecords.Where(a => a.Date >= today && a.Date < today.AddDays(1)).ToList();
+        var recordsToday = todayRecords.Where(a => a.Date >= today && a.CreatedAt < today.AddDays(1)).ToList();
 
         var presentToday = recordsToday.Count(r => r.CheckIn.HasValue);
         var lateArrivals = recordsToday.Count(r => r.CheckIn.HasValue && r.CheckIn.Value.TimeOfDay > lateThreshold);

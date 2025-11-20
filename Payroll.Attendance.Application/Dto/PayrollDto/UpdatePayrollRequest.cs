@@ -1,13 +1,10 @@
 namespace Payroll.Attendance.Application.Dto.PayrollDto;
 
-public class UpdatePayrollDto
+public class UpdatePayrollRequest
 {
-  
-        
-  
     public int EmployeeId { get; set; }
-    public Domain.Models.Employee? Employee { get; set; }
-    public DateTime Payperiod { get; set; }
+   
+    public DateTime PayPeriod { get; set; }
         
    
     public decimal BasicSalary { get; set; }
@@ -27,8 +24,7 @@ public class UpdatePayrollDto
     public string? PayrollStatus { get; set; } 
   
     public DateTime PaidDate { get; set; }
+  
         
-    public string PayslipPath { get; set; }
-    public string PayslipNumber { get; set; }
-    public string EmplooymentType { get; set; }
+
 }
