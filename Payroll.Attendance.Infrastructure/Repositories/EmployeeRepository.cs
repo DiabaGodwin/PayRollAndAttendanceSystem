@@ -22,7 +22,8 @@ using Microsoft.EntityFrameworkCore;
             public async Task<List<Employee>> GetAllEmployeesAsync(PaginationRequest request,
                 CancellationToken cancellationToken)
             {
-                var query =  context.Employees.AsQueryable().AsNoTracking();
+                var query =  context.Employees
+                    .Include(x=>x.Department).AsQueryable().AsNoTracking();
 
                 if (!string.IsNullOrEmpty(request.SearchText))
                 {
@@ -47,6 +48,7 @@ using Microsoft.EntityFrameworkCore;
                 {
                     query = query.Where(x =>x.CreatedAt >= request.StartDate && x.CreatedAt <= request.EndDate);
                 }
+                query = query.Where(x=> x.IsActive == true);
                 
                 query =query.OrderByDescending(x=>x.CreatedAt);
                 int skip = (request.PageNumber - 1) * request.PageSize;
