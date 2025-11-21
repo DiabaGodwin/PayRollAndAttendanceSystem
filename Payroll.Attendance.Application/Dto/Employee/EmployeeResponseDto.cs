@@ -24,7 +24,7 @@ public class EmployeeResponseDto
     public string? Salary { get; set; }
     public string PayFrequency { get; set; } = null!;
     public string? EmploymentStatus  { get; set; } 
-    public string? Department { get; set; }
+   
   
    
 }
