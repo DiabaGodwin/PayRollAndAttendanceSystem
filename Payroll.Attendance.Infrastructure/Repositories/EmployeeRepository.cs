@@ -164,17 +164,20 @@ using Microsoft.EntityFrameworkCore;
                 return new EmployeeSummary
                 {
                     TotalEmployee = employee.Count,
-                    NssPersonnel = employee.Count(e => e.EmploymentType == "Nss"),
+                    NssPersonnel = employee.Count(e => e.EmploymentType == "NssPersonnel"),
                     FullTime = employee.Count(e => e.EmploymentType == "FullTime"),
                     PartTime = employee.Count(e => e.EmploymentType == "PartTime"),
-                    Others = employee.Count(e=>e.EmploymentType == "Others"),
                     Interns = employee.Count(e => e.EmploymentType == "Intern"),
                     ActiveEmployee = employee.Count(x => x.IsActive),
                     InActiveEmployee = employee.Count(e => e.IsActive==false)
                 };
             }
 
-           
+            public async Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken)
+            {
+                return await context.Employees.AnyAsync(x => x.Email.ToLower() == email.ToLower(),  cancellationToken);
+            }
+
 
             public async Task<List<Employee>> GetEmployeesByDepartmentAsync(int departmentId, CancellationToken ct)
             {

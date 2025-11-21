@@ -14,6 +14,7 @@ namespace Payroll.Attendance.Domain.Models
         public string Surname { get; set; } = null!;
         public string? OtherName { get; set; }
         [EmailAddress]
+        [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", ErrorMessage = "Email is not valid")]
         public string Email { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;
         public DateTime? DateOfBirth { get; set; } 
@@ -44,7 +45,7 @@ namespace Payroll.Attendance.Domain.Models
         public int NssPersonnel { get; set; }
         public int FullTime { get; set; }
         public int PartTime { get; set; }
-        public int Others {  get; set; }
+  
         public int Interns { get; set; }
         public int ActiveEmployee {get; set; }
         public int InActiveEmployee { get; set; }

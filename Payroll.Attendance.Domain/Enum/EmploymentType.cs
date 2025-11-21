@@ -4,6 +4,6 @@ public  enum EmploymentType
     {
     PartTime,
     FullTime,
-    Nss,
+    NssPersonnel ,
     Intern
     }
