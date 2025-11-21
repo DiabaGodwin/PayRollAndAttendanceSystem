@@ -62,6 +62,7 @@ using Microsoft.EntityFrameworkCore;
 
 
             public async Task<Employee?> GetEmployeeByIdAsync(int id, CancellationToken cancellationToken)
+            
             {
                 var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
                 return employee;
@@ -69,7 +70,10 @@ using Microsoft.EntityFrameworkCore;
 
             public async Task<bool> UpdateEmployeeAsync(int id,UpdateEmployeeRequest request, CancellationToken cancellationToken)
             {
-                await context.Employees.Where(x => x.Id == id).ExecuteUpdateAsync(y => y
+                var exist = await context.Employees.AnyAsync(x => x.Id == id, cancellationToken);
+                if (!exist) return false;
+                
+               var result = await context.Employees.Where(x => x.Id == id).ExecuteUpdateAsync(y => y
                         .SetProperty(x => x.UpdatedAt, DateTime.UtcNow)
                         .SetProperty(x => x.JobPosition, request.JobPosition)
                         .SetProperty(x => x.Surname, request.Surname)
@@ -84,10 +88,12 @@ using Microsoft.EntityFrameworkCore;
                         .SetProperty(x=>x.DateOfBirth, request.DateOfBirth)
                         .SetProperty(x=> x.DepartmentId, request.DepartmentId)
                         .SetProperty(x=> x.EmploymentType, request.EmploymentType)
+                        .SetProperty(x=>x.HireDate, request.HireDate)
                     
                     , cancellationToken);
-                var result = await context.SaveChangesAsync(cancellationToken);
-                return result > 0;
+              
+               return result > 0;
+
             }
 
             public async Task<bool> DeleteEmployeeAsync(int id, CancellationToken cancellationToken)

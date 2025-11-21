@@ -13,7 +13,7 @@ public interface IEmployeeService
     Task<ApiResponse<bool>> UpdateEmployeeAsync(int id,UpdateEmployeeRequest
         request,CancellationToken cancellationToken);
 
-    Task<ApiResponse<List<EmployeeResponseDto>>> GetEmployeeByIdAsync(int id,
+    Task<ApiResponse<EmployeeResponseDto>> GetEmployeeByIdAsync(int id,
         CancellationToken cancellationToken);
 
     Task<ApiResponse<List<EmployeeIdAndNameDto>>> GetEmployeeIdAndName(string? searchText, CancellationToken cancellationToken);

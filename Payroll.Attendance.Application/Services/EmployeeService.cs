@@ -117,13 +117,13 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
 
 
 
-    public async Task<ApiResponse<List<EmployeeResponseDto>>> GetEmployeeByIdAsync(int id,
+    public async Task<ApiResponse<EmployeeResponseDto>> GetEmployeeByIdAsync(int id,
         CancellationToken cancellationToken)
     {
         var res = await employeeRepository.GetEmployeeByIdAsync(id, cancellationToken);
-        var response = res.Adapt(new List<EmployeeResponseDto>());
+        var response = res.Adapt(new EmployeeResponseDto());
 
-        return new ApiResponse<List<EmployeeResponseDto>>()
+        return new ApiResponse<EmployeeResponseDto>()
         {
             Message = "Your request was successful retrieved",
             StatusCode = StatusCodes.Status200OK,
