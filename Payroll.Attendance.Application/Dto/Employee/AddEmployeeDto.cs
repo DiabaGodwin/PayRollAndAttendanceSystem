@@ -22,6 +22,7 @@ public class AddEmployeeDto
     [Phone]
     public string PhoneNumber { get; set; } = null!;
     [Required]
+
     public DateTime? DateOfBirth { get; set; } 
     [Required]
     public string? Address { get; set; }

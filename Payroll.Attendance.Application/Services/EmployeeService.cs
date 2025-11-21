@@ -13,6 +13,27 @@ namespace Payroll.Attendance.Application.Services;
 public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<EmployeeService> logger)
     : IEmployeeService
 {
+    private (bool Success, string Message) ValidateDateOfBirth(DateTime? dob)
+    {
+        if (dob == null)
+            return (false, "Date of birth is required");
+
+        if (dob > DateTime.Today)
+            return (false, "Date of birth cannot be in the future");
+
+        // Calculate age
+        int age = DateTime.Today.Year - dob.Value.Year;
+        if (dob.Value > DateTime.Today.AddYears(-age)) 
+            age--;
+
+        // Accept only if age ≥ 18
+        if (age < 18)
+            return (false, "Employee must be at least 18 years old");
+
+        return (true, "Valid");
+    }
+
+    
     public async Task<ApiResponse<int>> AddEmployeeAsync(AddEmployeeDto addEmployeeDto, CancellationToken token)
     {
         logger.LogInformation("Adding new employee");
@@ -37,7 +58,30 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
                 StatusCode = StatusCodes.Status400BadRequest,
             };
         }
+        
+        var emailExists = await employeeRepository.EmailExistsAsync(addEmployeeDto.Email, token);
+        if (emailExists)
+        {
+            return new ApiResponse<int>()
+            {
+                Message = $"Email '{addEmployeeDto.Email}' already exist",
+                StatusCode = StatusCodes.Status400BadRequest
+            };
+        }
 
+        var dobCheck = ValidateDateOfBirth(addEmployeeDto.DateOfBirth);
+        if (!dobCheck.Success)
+        {
+            return new ApiResponse<int>()
+            {
+                Message = dobCheck.Message,
+                StatusCode = StatusCodes.Status400BadRequest
+            };
+        }
+        
+        
+   
+ 
 
 
 
@@ -179,10 +223,9 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
             var summary = new EmployeeSummaryDto
             {
                 TotalEmployee = employees.Count,
-                NSSPersonnel = employees.Count(e => e.EmploymentType == "NSS"),
+                NSSPersonnel = employees.Count(e => e.EmploymentType == "NssPersonnel"),
                 FullTime = employees.Count(e => e.EmploymentType == "FullTime"),
                 PartTime = employees.Count(e => e.EmploymentType == "PartTime"),
-                Others = employees.Count(e => e.EmploymentType == "Others"),
                 Interns = employees.Count(e => e.EmploymentType == "Intern"),
                 ActiveEmployee = employees.Count(x => x.IsActive),
                 InActiveEmployee = employees.Count(e => e.IsActive==false)
