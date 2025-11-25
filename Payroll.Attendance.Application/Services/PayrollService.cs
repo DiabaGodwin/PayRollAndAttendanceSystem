@@ -31,7 +31,8 @@ namespace Payroll.Attendance.Application.Services
                     PayrollStatus = "Pending",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    PayslipNumber = Guid.NewGuid().ToString()
+                    PayslipNumber = Guid.NewGuid().ToString(),
+                    PayslipPath = $"/payslips/{dto.PayslipNumber}.pdf"
                 };
                 var result = await repository.CreatePayrollAsync(payroll,cancellationToken);
 
@@ -73,7 +74,17 @@ namespace Payroll.Attendance.Application.Services
                     };
                 }
 
-                dto = result.Adapt(dto);
+                dto = result.Adapt<GeneratePayslipDto>();
+                
+                dto.TotalDeduction = dto.Tax + dto.Loan + dto.Deduction;
+                dto.NetPay = dto.BasicSalary + dto.Allowance - dto.TotalDeduction;
+                
+                dto.PayrollStatus = "Pending";
+                dto.UpdatedAt = DateTime.UtcNow;
+                dto.PayslipNumber = Guid.NewGuid().ToString();
+                dto.PayslipPath = $"/payslips/{dto.PayslipNumber}.pdf";
+                dto.PaidDate = DateTime.UtcNow;
+                
               
 
                 return new ApiResponse<GeneratePayslipDto>()
@@ -87,6 +98,7 @@ namespace Payroll.Attendance.Application.Services
             catch (System.Exception e)
             {
                 logger.LogError( "Error  generating payroll for EmployeeId {EmployeeId}", dto.Id );
+                
                 return new ApiResponse<GeneratePayslipDto>()
                 {
                     Message = "Failed to generate payslip",

@@ -20,6 +20,8 @@ public class CreatePayrollDto
    
     public decimal Deduction { get; set; }
     public string PayrollStatus { get; set; } = "Pending";
+    public string? PayslipPath { get; set; }
+    public string? PayslipNumber { get; set; }
   
 
 

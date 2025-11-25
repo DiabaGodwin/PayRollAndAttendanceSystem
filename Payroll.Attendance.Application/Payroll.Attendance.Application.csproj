@@ -15,4 +15,8 @@
       <ProjectReference Include="..\Payroll.Attendance.Domain\Payroll.Attendance.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Dto\SystemSetting\" />
+    </ItemGroup>
+
 </Project>

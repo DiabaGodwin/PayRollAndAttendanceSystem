@@ -34,7 +34,9 @@ namespace Payroll.Attendance.Infrastructure.Repositories
             if (request.StartDate.HasValue && request.EndDate.HasValue)
             {
                 query = query.Where(x =>x.CreatedAt >= request.StartDate && x.CreatedAt <= request.EndDate);
-            } 
+            }
+
+            query = query.OrderByDescending(X => X.EmployeeId);
           
         
             int skip = (request.PageNumber - 1) * request.PageSize;
@@ -49,6 +51,7 @@ namespace Payroll.Attendance.Infrastructure.Repositories
 
         public async Task<PayrollRecord?> GetPayrollByIdAsync(int id, CancellationToken cancellationToken)
         {
+            
            var result = await dbContext.Payrolls.Include(e => e.Employee)
                .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
            return result;
@@ -56,7 +59,9 @@ namespace Payroll.Attendance.Infrastructure.Repositories
 
         public async Task<bool> UpdatePayrollAsync(UpdatePayrollRequest request, CancellationToken cancellationToken)
         {
-            await dbContext.Payrolls.Where(x => x.Employee.Id == request.EmployeeId).ExecuteUpdateAsync(y =>y
+            var exist = await dbContext.Payrolls.AnyAsync(x=>x.EmployeeId == request.EmployeeId, cancellationToken); 
+            if(!exist) return false;
+var result = await dbContext.Payrolls.Where(x => x.Employee.Id == request.EmployeeId).ExecuteUpdateAsync(y =>y
                 .SetProperty(x => x.EmployeeId, request.EmployeeId)
                 .SetProperty(x=>x.BasicSalary, request.BasicSalary)
                 .SetProperty(x=>x.Allowance, request.Allowance)
@@ -72,7 +77,7 @@ namespace Payroll.Attendance.Infrastructure.Repositories
                
                 
             );
-            var result = await dbContext.SaveChangesAsync(cancellationToken);
+           
             return result > 0;
         }
 

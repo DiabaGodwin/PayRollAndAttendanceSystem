@@ -140,6 +140,22 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
 
     public async Task<ApiResponse<bool>> UpdateEmployeeAsync(int id, UpdateEmployeeRequest request,CancellationToken cancellationToken)
     {
+        var today = DateTime.UtcNow.Date;
+        var age = today.Year - request.DateOfBirth.Value.Year;
+        if (request.DateOfBirth.Value.Date > today.AddYears(-age))
+        {
+            age--;
+        }
+
+        if (age < 18)
+        {
+            return new ApiResponse<bool>()
+            {
+                Message = "Employee must be at least 18 years old",
+                StatusCode = StatusCodes.Status400BadRequest,
+            };
+        }
+        
         var  result = await employeeRepository.UpdateEmployeeAsync(id,request, cancellationToken);
         if (result)
         {

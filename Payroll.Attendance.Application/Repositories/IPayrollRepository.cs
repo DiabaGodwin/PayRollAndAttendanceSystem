@@ -14,6 +14,7 @@ namespace Payroll.Attendance.Application.Repositories
         Task<bool> UpdatePayrollAsync(UpdatePayrollRequest request, CancellationToken cancellationToken);
         Task<bool> DeletePayrollAsync(int id, CancellationToken cancellationToken);
         Task<List<PayrollSummary>> GetAllPayrollSummaryAsync(CancellationToken cancellationToken);
+        
       
     }
 }
