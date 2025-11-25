@@ -37,8 +37,8 @@ namespace Payroll.Attendance.Domain.Models
         
         public DateTime PaidDate { get; set; }
         
-        public string PayslipPath { get; set; }
-        public string PayslipNumber { get; set; }
+        public string? PayslipPath { get; set; }
+        public string? PayslipNumber { get; set; }
         
     }
 

@@ -13,7 +13,8 @@ public class UpdateEmployeeRequest
    
     public string? OtherName { get; set; } = null!;
     
- 
+    [EmailAddress]
+    [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", ErrorMessage = "Email is not valid")]
     public string? Email { get; set; } = null!;
    
   

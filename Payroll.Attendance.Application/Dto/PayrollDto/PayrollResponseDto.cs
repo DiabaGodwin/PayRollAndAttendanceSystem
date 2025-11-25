@@ -27,8 +27,8 @@ public class PayrollResponseDto
    
     public DateTime PaidDate { get; set; }
         
-    public string PayslipPath { get; set; }
-    public string PayslipNumber { get; set; }
+    public string? PayslipPath { get; set; }
+    public string? PayslipNumber { get; set; }
   
 
 }

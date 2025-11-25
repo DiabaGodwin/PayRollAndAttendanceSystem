@@ -10,6 +10,11 @@ public class GeneratePayslipDto
         
     public int EmployeeId { get; set; }
     
+    public string? FirstName { get; set; }
+    public string? Surname { get; set; }
+    public string? Email { get; set; }
+    
+    
     public DateTime PayPeriod { get; set; }
         
   
@@ -32,12 +37,8 @@ public class GeneratePayslipDto
     public DateTime UpdatedAt { get; set; } 
     public DateTime PaidDate { get; set; }
         
-    public string PayslipPath { get; set; }
-    public string PayslipNumber { get; set; }
+    public string? PayslipPath { get; set; }
+    public string? PayslipNumber { get; set; }
    
-    
-    public string? FirstName { get; set; }
-    public string? Surname { get; set; }
-    public string? Email { get; set; }
     
 }

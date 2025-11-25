@@ -167,15 +167,15 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
 
         var presentToday = recordsToday.Count(r => r.CheckIn.HasValue);
         var lateArrivals = recordsToday.Count(r => r.CheckIn.HasValue && r.CheckIn.Value.TimeOfDay > lateThreshold);
-        var totalEmployees = await repository.CountAsync(cancellationToken);
+        var totalAttendance = await repository.CountAsync(cancellationToken);
       
 
-        var absent = totalEmployees - presentToday;
+        var absent = totalAttendance - presentToday;
         if (absent < 0) absent = 0; // safety check
 
         var summary = new AttendanceSummaryDto
         {
-            TotalEmployees = totalEmployees,
+            TotalEmployees = totalAttendance,
             PresentToday = presentToday,
             LateArrivals = lateArrivals,
             Absent = absent,

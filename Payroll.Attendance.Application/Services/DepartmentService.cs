@@ -79,7 +79,7 @@ public class DepartmentService(IDepartmentRepository departmentRepository,ILogge
         var response = await departmentRepository.GetDepartmentByIdAsync(id, cancellationToken);
         var result = response.Adapt<DepartmentResponseDto>();
         
-        if (response == null)
+        if (response != null)
         {
             return new ApiResponse<DepartmentResponseDto>()
             {
