@@ -57,5 +57,13 @@ public class AttendanceController(IAttendanceService service) : ControllerBase
         var result = await service.GetSummaryAsync(cancellationToken);
         return StatusCode(result.StatusCode, result);
     }
-    
+
+    [HttpPost("bulk")]
+    public async Task<IActionResult> BulkAttendance([FromBody] BulkAttendanceRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var result = await service.BulkAttendanceAsync(request, cancellationToken);
+        return StatusCode(result.StatusCode, result);
+    }
+
 }
