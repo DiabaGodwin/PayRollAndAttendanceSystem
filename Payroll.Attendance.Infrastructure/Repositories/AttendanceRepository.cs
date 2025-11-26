@@ -92,4 +92,11 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
     {
         return await dbContext.Employees.CountAsync((cancellationToken));
     }
+
+    public async Task<int> UpdateAsync(AttendanceRecord record, CancellationToken cancellationToken)
+    {
+         dbContext.Attendances.Update(record);
+         return await dbContext.SaveChangesAsync(cancellationToken);
+        
+    }
 }

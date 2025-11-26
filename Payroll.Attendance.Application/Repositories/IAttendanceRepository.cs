@@ -16,6 +16,7 @@ namespace Payroll.Attendance.Application.Repositories
             CancellationToken cancellationToken);
         Task<List<AttendanceRecord>> GetAllSummaryAsync(CancellationToken cancellationToken);
         Task<int> CountAsync(CancellationToken cancellationToken);
+        Task<int> UpdateAsync(AttendanceRecord record, CancellationToken cancellationToken);
      
         
     }

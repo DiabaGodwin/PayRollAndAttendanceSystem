@@ -36,7 +36,7 @@ namespace Payroll.Attendance.Infrastructure.Repositories
                 query = query.Where(x =>x.CreatedAt >= request.StartDate && x.CreatedAt <= request.EndDate);
             }
 
-            query = query.OrderByDescending(X => X.EmployeeId);
+            query = query.OrderByDescending(X => X.CreatedAt);
           
         
             int skip = (request.PageNumber - 1) * request.PageSize;

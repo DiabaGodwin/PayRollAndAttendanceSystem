@@ -1,6 +1,7 @@
 using Mapster;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Dto.AttendanceRecord;
 using Payroll.Attendance.Application.Repositories;
@@ -8,7 +9,7 @@ using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Application.Services;
 
-public class AttendanceService(IAttendanceRepository repository) : IAttendanceService
+public class AttendanceService(IAttendanceRepository repository, ILogger<AttendanceService> logger) : IAttendanceService
 {
     public async Task<ApiResponse<int>> CheckIn( AttendanceRequest request,  CancellationToken cancellationToken)
     {
@@ -187,6 +188,138 @@ public class AttendanceService(IAttendanceRepository repository) : IAttendanceSe
             Data = summary,
             Message = "Attendance summary retrieved successfully",
             StatusCode = StatusCodes.Status200OK
+        };
+    }
+
+    public async Task<decimal> GetOverallAttendanceRateAsync(CancellationToken cancellationToken)
+    {
+        var total = await repository.CountAsync(cancellationToken);
+        return total;
+
+    }
+
+    public Task<List<DepartmentAttendance>> GetDepartmentAttendanceAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<Activity>> GetRecentActivityAsync(CancellationToken cancellationToken, int count = 10)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> RecordClockInAsync(int employeeId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> RecordClockOutAsync(int employeeId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<ApiResponse<BulkAttendanceResponseDto>> BulkAttendanceAsync(BulkAttendanceRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var result = new BulkAttendanceResponseDto();
+        var errors = new List<string>();
+
+        if (request.Records.Count==0)
+        {
+            return new ApiResponse<BulkAttendanceResponseDto>()
+            {
+                Message = "No Attendance records provided",
+                StatusCode = StatusCodes.Status400BadRequest,
+                Data = result
+            };
+
+        }
+
+        foreach (var record in request.Records)
+        {
+            try
+            {
+                var existingRecord =
+                    await repository.GetByDateAsync(record.EmployeeId, request.Date, cancellationToken);
+                if (existingRecord == null)
+                {
+                    var checkInTime = record.CheckInTime ?? request.Date.Date.AddHours(8);
+                    var checkOutTime = record.CheckOutTime ?? request.Date.Date.AddHours(5);
+
+                    var attendanceRecord = new AttendanceRecord()
+                    {
+                        EmployeeId = record.EmployeeId,
+                        Date = request.Date,
+                        CheckIn = record.CheckIn ? checkInTime : null,
+                        CheckOut = record.CheckOut ? checkOutTime : null,
+                        IsLate = record.CheckIn && checkInTime > request.Date.Date.AddHours(8),
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                    };
+                    var response = await repository.CheckIn(attendanceRecord, cancellationToken);
+                    if (response > 0)
+                    {
+                        return new ApiResponse<BulkAttendanceResponseDto>()
+                        {
+                            Message = "Attendance Create  successfully",
+                            StatusCode = StatusCodes.Status200OK,
+                        };
+                    }
+
+                    return new ApiResponse<BulkAttendanceResponseDto>()
+                    {
+                        Message = "Failed to create attendance",
+                        StatusCode = StatusCodes.Status400BadRequest,
+                    };
+                }
+                bool updated = false;
+                if (record.CheckOut && existingRecord.CheckOut == null)
+                {
+                    existingRecord.CheckIn = record.CheckInTime ?? request.Date.Date.AddHours(8);
+                    existingRecord.IsLate = existingRecord.CheckIn > request.Date.Date.AddHours(8);
+                    updated = true;
+                }
+
+                if (updated)
+                {
+                    existingRecord.UpdatedAt = DateTime.UtcNow;
+                    var data = await repository.UpdateAsync(existingRecord, cancellationToken);
+
+                    if (data > 0)
+                        
+                        return new ApiResponse<BulkAttendanceResponseDto>()
+                        {
+                            Message = "Update Employee Successfully",
+                            StatusCode = StatusCodes.Status200OK,
+                        };
+                    return new ApiResponse<BulkAttendanceResponseDto>()
+                    {
+                        Message = "Failed to update attendance of Employee",
+                        StatusCode = StatusCodes.Status400BadRequest,
+                    };
+                }
+                
+                
+
+            }
+            
+            catch (System.Exception e)
+            {
+                logger.LogError($"Error processing employee attendance: {record.EmployeeId}");
+            }
+
+            result.TotalProcessed++;
+        }
+        result.Errors = errors;
+
+        return new ApiResponse<BulkAttendanceResponseDto>()
+        {
+            Data = result,
+            Message = result.Failed == 0 ? "Bulk Attendance process Successfully"
+                : $"Bulk Attendance completed with {result.Failed} Failures",
+            StatusCode = result.Failed == 0 ? StatusCodes.Status200OK :
+                StatusCodes.Status207MultiStatus,
+            
         };
     }
 }
