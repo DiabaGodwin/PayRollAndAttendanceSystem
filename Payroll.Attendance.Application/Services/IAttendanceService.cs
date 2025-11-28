@@ -16,8 +16,7 @@ public interface IAttendanceService
     Task<decimal> GetOverallAttendanceRateAsync(CancellationToken cancellationToken);
     Task<List<DepartmentAttendance>> GetDepartmentAttendanceAsync(CancellationToken cancellationToken);
     Task<List<Activity>> GetRecentActivityAsync(CancellationToken cancellationToken, int count = 10);
-    Task<bool> RecordClockInAsync(int employeeId, CancellationToken cancellationToken);
-    Task<bool> RecordClockOutAsync(int employeeId, CancellationToken cancellationToken);
+ 
     Task<ApiResponse<BulkAttendanceResponseDto>> BulkAttendanceAsync(BulkAttendanceRequestDto request,
         CancellationToken cancellationToken);
 } 

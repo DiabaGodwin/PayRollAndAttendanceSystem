@@ -27,6 +27,7 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
 
 
         query = query.OrderByDescending(x => x.Date).ThenByDescending(x=> x.CheckIn);
+        query = query.OrderByDescending(x=>x.Date).ThenByDescending(x=>x.CheckIn);
         
         int skip = (request.PageNumber - 1) * request.PageSize;
                 
@@ -46,6 +47,7 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
 
     public async Task<int> CheckIn(AttendanceRecord record, CancellationToken cancellationToken)
     {
+        var existing = dbContext.Attendances.FirstOrDefault(x => x.EmployeeId == record.Id && x.Date.Date == DateTime.Today);
         var result = await dbContext.Attendances.AddAsync(record, cancellationToken);
         var res = await dbContext.SaveChangesAsync(cancellationToken);
         return record.Id;
@@ -85,7 +87,9 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
 
     public async Task<List<AttendanceRecord>> GetAllSummaryAsync(CancellationToken cancellationToken)
     {
+        var totalEmployees = await dbContext.Employees.Select(e => e.Id).Distinct().CountAsync(cancellationToken);
         return await dbContext.Attendances.Include(x => x.Employee).ToListAsync(cancellationToken);
+        
     }
 
     public async Task<int> CountAsync(CancellationToken cancellationToken)
@@ -98,5 +102,69 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
          dbContext.Attendances.Update(record);
          return await dbContext.SaveChangesAsync(cancellationToken);
         
+    }
+
+    public async Task<int> CountEmployeesAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Employees.CountAsync(cancellationToken);
+    }
+
+    public async Task<int> CountPresentTodayAsync(DateTime today, CancellationToken cancellationToken)
+    {
+        return await dbContext.Attendances.Where(x=>x.Date.Date == today.Date && x.CheckIn != null).CountAsync(cancellationToken);
+    }
+
+    public async Task<List<DepartmentAttendance>> GetDepartmentAttendanceAsync(DateTime today, CancellationToken cancellationToken)
+    {
+        var result = await dbContext.Departments.Select(d=> new DepartmentAttendance()
+            {
+                DepartmentName = d.Name,
+                EmployeeCount = d.Employees.Count,
+                PresentCount = d.Employees
+                    .Count(t=> dbContext.Attendances
+                        .Any(t=>t.EmployeeId == t.Id && t.Date.Date == today.Date && t.CheckIn != null))
+            }
+            ).ToListAsync(cancellationToken);
+        return result;
+    }
+
+    public async Task<List<Activity>> GetRecentActivitiesAsync(int count, CancellationToken cancellationToken)
+    {
+        return await  dbContext.Activities.OrderByDescending(x=>x.CreatedAt).Take(count)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> ClockInAsync(int employeeId, DateTime now, CancellationToken cancellationToken)
+    {
+        var today = now.Date;
+        var existing =
+            await dbContext.Attendances.FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.Date.Date >= today,
+                cancellationToken);
+        if (existing != null)
+            return false;
+        var attendance = new AttendanceRecord()
+        {
+            EmployeeId = employeeId,
+            Date = today,
+            CheckIn = now,
+        };
+        await dbContext.Attendances.AddAsync(attendance, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+
+    }
+
+    public async Task<bool> ClockOutAsync(int employeeId, DateTime now, CancellationToken cancellationToken)
+    {
+        var today = now.Date;
+        var attendance =
+            await dbContext.Attendances.FirstOrDefaultAsync(x => x.EmployeeId == employeeId && x.Date.Date == today,
+                cancellationToken);
+        if (attendance == null)
+            return false;
+        attendance.CheckOut = now;
+        dbContext.Attendances.Update((attendance));
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }

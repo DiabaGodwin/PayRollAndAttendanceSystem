@@ -9,7 +9,7 @@ using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Application.Services;
 
-public class AttendanceService(IAttendanceRepository repository, ILogger<AttendanceService> logger) : IAttendanceService
+public class AttendanceService(IAttendanceRepository repository,  ILogger<AttendanceService> logger, IEmployeeRepository employeeRepository) : IAttendanceService
 {
     public async Task<ApiResponse<int>> CheckIn( AttendanceRequest request,  CancellationToken cancellationToken)
     {
@@ -157,31 +157,83 @@ public class AttendanceService(IAttendanceRepository repository, ILogger<Attenda
     }
 
     public async Task<ApiResponse<AttendanceSummaryDto>> GetSummaryAsync(CancellationToken cancellationToken)
-    {
-        var today = DateTime.UtcNow.Date;
-        var lateThreshold = new TimeSpan(8, 10, 0); 
-
-        // Fetch all attendance records for today   
-        var todayRecords = await repository.GetAllSummaryAsync(cancellationToken);
+          {
+       var totalEmployees = await employeeRepository.CountEmployeesAsync(cancellationToken);
         
-        var recordsToday = todayRecords.Where(a => a.Date >= today && a.CreatedAt < today.AddDays(1)).ToList();
-
-        var presentToday = recordsToday.Count(r => r.CheckIn.HasValue);
-        var lateArrivals = recordsToday.Count(r => r.CheckIn.HasValue && r.CheckIn.Value.TimeOfDay > lateThreshold);
-        var totalAttendance = await repository.CountAsync(cancellationToken);
       
+        
+        var today = DateTime.UtcNow.Date;
+        var tomorrow = today.AddDays(1);
+        var lateThreshhold = new TimeSpan(8, 0, 0);
+        
+        
+        var allRecords = await repository.GetAllSummaryAsync(cancellationToken);
+       
+        //Daily Summary
+        var recordsToday = allRecords.Where(x=>x.Date >= today && x.Date <= tomorrow).ToList();
+        var presentToday = recordsToday.Count(e => e.CheckIn.HasValue);
+        var lateArrivals = recordsToday.Count(e=>e.CheckIn.HasValue && e.CheckIn.Value.TimeOfDay > lateThreshhold);
+        var OnLeaveToday = recordsToday.Count(x=>x.IsOnLeave == true);
+        var absentToday  = totalEmployees - (OnLeaveToday - presentToday);
+        if(absentToday < 0) absentToday = 0;
+        double attendancePercentage = totalEmployees == 0 ? 0
+            : Math.Round(((double)presentToday / totalEmployees) * 100, 1);
+        
+        //MONTH SUMMARY
+        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+        var nextMonth = firstDayOfMonth.AddMonths(1);
+        var monthRecords = allRecords.Where(x=>x.Date >= firstDayOfMonth && x.Date <= nextMonth).ToList();
+        var workingDaysMonth = monthRecords.Select(x => x.Date.Date).Distinct().Count();
+        var overallPresentMonth = monthRecords.Count(x => x.CheckIn.HasValue);
+        var overallLeaveMonth = monthRecords.Count(x => x.IsOnLeave == true);
+        var overallExpectedMonth = totalEmployees * workingDaysMonth;
+        var overallAbsentMonth = overallExpectedMonth - (overallPresentMonth + overallLeaveMonth);
+        if(overallAbsentMonth < 0) overallAbsentMonth = 0;
+        double averageAttendancePercentageMonth = overallExpectedMonth == 0
+            ? 0
+            : Math.Round(((double)overallPresentMonth / overallExpectedMonth) * 100, 1);
+        
+        //ALL-TIME SUMMARY
+        var workingDaysAll = allRecords.Select(e => e.Date.Date).Distinct().Count();
+            var totalPresent = allRecords.Count(e=>e.CheckIn.HasValue);
+            var totalLeave = allRecords.Count(x=>x.IsOnLeave == true);
+            var totalExpectedAll = totalEmployees * workingDaysAll;
 
-        var absent = totalAttendance - presentToday;
-        if (absent < 0) absent = 0; // safety check
+            var totalAbsent = totalExpectedAll - (totalPresent + totalLeave);
+            if(totalAbsent < 0) totalAbsent = 0;
+            double lifetimeAttendancePercentage =
+                totalExpectedAll == 0 ? 0 : Math.Round(((double)totalPresent / totalExpectedAll) * 100, 2);
 
-        var summary = new AttendanceSummaryDto
-        {
-            TotalEmployees = totalAttendance,
-            PresentToday = presentToday,
-            LateArrivals = lateArrivals,
-            Absent = absent,
-         
-        };
+            var summary = new AttendanceSummaryDto()
+            {
+                Today = new TodaySummaryDto
+                {
+                    PresentToday = presentToday,
+                    AbsentToday = absentToday,
+                    LateArrivals = lateArrivals,
+                    OnLeave = OnLeaveToday,
+                    AttendancePercentage = attendancePercentage
+                },
+                Month = new MonthSummaryDto()
+                {
+                    WorkingDays = workingDaysMonth,
+                    OverallPresent =  overallPresentMonth,
+                    OverallAbsent = overallAbsentMonth,
+                    OverallLeave = overallLeaveMonth,
+                    AverageAttendancePercentage = averageAttendancePercentageMonth
+                    
+                },
+                AllTime = new AllTimeSummaryDto()
+                {
+                   AllWorkingDays = workingDaysAll,
+                   TotalPresent = totalPresent,
+                   TotalAbsent =  totalAbsent,
+                   TotalLeave = totalLeave,
+                   LifetimeAttendancePercentage = lifetimeAttendancePercentage
+                }
+                
+            };
+        
 
         return new ApiResponse<AttendanceSummaryDto>
         {
@@ -193,30 +245,49 @@ public class AttendanceService(IAttendanceRepository repository, ILogger<Attenda
 
     public async Task<decimal> GetOverallAttendanceRateAsync(CancellationToken cancellationToken)
     {
-        var total = await repository.CountAsync(cancellationToken);
-        return total;
+        var totalEmployees = await repository.CountAsync(cancellationToken);
+        if (totalEmployees == 0)
+            return 0;
+        var today = DateTime.UtcNow.Date;
+        var all = await repository.GetAllSummaryAsync(cancellationToken);
+        var present = all.Count(e=>e.Date == today && e.CheckIn != null);
+        return  Math.Round((decimal)present / totalEmployees * 100, 2);
 
-    }
 
-    public Task<List<DepartmentAttendance>> GetDepartmentAttendanceAsync(CancellationToken cancellationToken)
+    } 
+
+    public async Task<List<DepartmentAttendance>> GetDepartmentAttendanceAsync(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+       var today = DateTime.UtcNow.Date;
+       var records = await repository.GetAllSummaryAsync(cancellationToken);
+       
+       var grouped = records
+           .Where(x=>x.Employee != null)
+           .GroupBy(x=>x.Employee.Department?.Name)
+           .Select(g=>new DepartmentAttendance
+               {
+                   DepartmentName = g.Key ?? "Unknown",
+                   EmployeeCount = g.Count(),
+                   PresentCount = Math.Round((decimal)g.Count(x=>x.CheckIn != null) / g.Count() * 100, 2 )
+               }
+               ).ToList();
+       return grouped;
     }
 
-    public Task<List<Activity>> GetRecentActivityAsync(CancellationToken cancellationToken, int count = 10)
+    public async Task<List<Activity>> GetRecentActivityAsync(CancellationToken cancellationToken, int count = 10)
     {
-        throw new NotImplementedException();
+       var records = await repository.GetAllSummaryAsync(cancellationToken);
+       var activities = records.OrderByDescending(x=>x.UpdatedAt ?? x.CreatedAt).Take(count).Select(x=>new Activity
+       {
+           EmployeeId = x.EmployeeId,
+           EmployeeName = $"{x.Employee?.Title} {x.Employee?.FirstName} {x.Employee?.Surname},",
+           Timestamp = x.UpdatedAt ?? x.CreatedAt,
+           Action = x.CheckOut != null ? "Cheked Out" : "Checked In",
+           Status = x.IsLate ? "Late" : "On Time"
+       }).ToList();
+       return activities;
     }
-
-    public Task<bool> RecordClockInAsync(int employeeId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<bool> RecordClockOutAsync(int employeeId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    
 
     public async Task<ApiResponse<BulkAttendanceResponseDto>> BulkAttendanceAsync(BulkAttendanceRequestDto request,
         CancellationToken cancellationToken)

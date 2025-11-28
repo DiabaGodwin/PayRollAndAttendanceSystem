@@ -178,6 +178,11 @@ using Microsoft.EntityFrameworkCore;
                 return await context.Employees.AnyAsync(x => x.Email.ToLower() == email.ToLower(),  cancellationToken);
             }
 
+            public async Task<int> CountEmployeesAsync(CancellationToken cancellationToken)
+            {
+                return await context.Employees.Select((e=>e.Id)).Distinct().CountAsync(cancellationToken);
+            }
+
 
             public async Task<List<Employee>> GetEmployeesByDepartmentAsync(int departmentId, CancellationToken ct)
             {

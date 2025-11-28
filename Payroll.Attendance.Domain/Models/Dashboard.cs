@@ -30,7 +30,7 @@ public  class DepartmentAttendance
 {
     public string? DepartmentName { get; set; }
     public int EmployeeCount { get; set; }
-    public decimal Attendance { get; set; }
+    public decimal PresentCount { get; set; }
 }
 public class Reminder
 {
@@ -52,12 +52,12 @@ public  class Activity
     public DateTime Timestamp { get; set; }
     public string? TimeDisplay { get; set; }
     public string? Status { get; set; }
-    
+    public DateTime CreatedAt { get; set; }    
 }
 
 public  class PayrollTrend
 {
-    public string? Month { get; set; }
+    public int Month { get; set; }
     public int Year { get; set; }
     public decimal Amount { get; set; }
 }
@@ -65,9 +65,10 @@ public  class PayrollTrend
 
 public class DepartmentDistribution
 {
-    public string? DepartmentName { get; set; }
+    public Department? DepartmentName { get; set; }
     public string? SalaryAmount { get; set; }
     public decimal Percentage { get; set; }
+    public decimal TotalAmount { get; set; }
 }
 
 

@@ -17,6 +17,14 @@ namespace Payroll.Attendance.Application.Repositories
         Task<List<AttendanceRecord>> GetAllSummaryAsync(CancellationToken cancellationToken);
         Task<int> CountAsync(CancellationToken cancellationToken);
         Task<int> UpdateAsync(AttendanceRecord record, CancellationToken cancellationToken);
+        Task<int> CountEmployeesAsync(CancellationToken cancellationToken);
+        Task<int> CountPresentTodayAsync(DateTime today, CancellationToken cancellationToken);
+        Task<List<DepartmentAttendance>> GetDepartmentAttendanceAsync(DateTime today,
+            CancellationToken cancellationToken);
+        Task<List<Activity>> GetRecentActivitiesAsync(int count, CancellationToken cancellationToken);
+        Task<bool> ClockInAsync(int employeeId, DateTime now, CancellationToken cancellationToken);
+        Task<bool> ClockOutAsync(int employeeId, DateTime now, CancellationToken cancellationToken);
+   
      
         
     }

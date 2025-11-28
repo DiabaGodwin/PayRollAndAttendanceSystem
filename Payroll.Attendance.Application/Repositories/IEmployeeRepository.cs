@@ -23,5 +23,6 @@ namespace Payroll.Attendance.Application.Repositories
 
         Task<EmployeeSummary?> GetEmployeeSummaryAsync(CancellationToken cancellationToken);
         Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken);
+        Task<int> CountEmployeesAsync(CancellationToken cancellationToken);
     }
 }
