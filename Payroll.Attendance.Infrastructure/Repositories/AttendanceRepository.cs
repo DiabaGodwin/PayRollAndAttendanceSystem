@@ -8,6 +8,8 @@ namespace Payroll.Attendance.Infrastructure.Repositories;
 
 public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceRepository
 {
+    private IAttendanceRepository _attendanceRepositoryImplementation;
+
     public async Task<List<AttendanceRecord>> GetAllAsync(PaginationRequest request, CancellationToken cancellationToken)
     {
         var query = dbContext.Attendances .Include(a => a.Employee)
@@ -26,8 +28,8 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
         }
 
 
-        query = query.OrderByDescending(x => x.Date).ThenByDescending(x=> x.CheckIn);
-        query = query.OrderByDescending(x=>x.Date).ThenByDescending(x=>x.CheckIn);
+        query = query.OrderByDescending(x => x.Date).ThenByDescending(x=> x.CheckIn)
+       .ThenByDescending(x=>x.CheckOut);
         
         int skip = (request.PageNumber - 1) * request.PageSize;
                 
@@ -100,14 +102,13 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
     public async Task<int> UpdateAsync(AttendanceRecord record, CancellationToken cancellationToken)
     {
          dbContext.Attendances.Update(record);
+         var existing = dbContext.Attendances.FirstOrDefault(x => x.EmployeeId == record.Id && x.Date.Date == DateTime.Today);
+         await dbContext.Attendances.OrderByDescending(x=>x.Date).ThenByDescending(x=>x.CheckIn).ToListAsync();
          return await dbContext.SaveChangesAsync(cancellationToken);
         
     }
 
-    public async Task<int> CountEmployeesAsync(CancellationToken cancellationToken)
-    {
-        return await dbContext.Employees.CountAsync(cancellationToken);
-    }
+   
 
     public async Task<int> CountPresentTodayAsync(DateTime today, CancellationToken cancellationToken)
     {

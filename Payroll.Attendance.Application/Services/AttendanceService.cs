@@ -158,7 +158,8 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
 
     public async Task<ApiResponse<AttendanceSummaryDto>> GetSummaryAsync(CancellationToken cancellationToken)
           {
-       var totalEmployees = await employeeRepository.CountEmployeesAsync(cancellationToken);
+       var employees = await employeeRepository.GetAllEmployeesAsync(new PaginationRequest{PageNumber = 1, PageSize = 1000}, cancellationToken);
+       var totalEmployees =  employees.Count;
         
       
         
@@ -170,11 +171,11 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
         var allRecords = await repository.GetAllSummaryAsync(cancellationToken);
        
         //Daily Summary
-        var recordsToday = allRecords.Where(x=>x.Date >= today && x.Date <= tomorrow).ToList();
-        var presentToday = recordsToday.Count(e => e.CheckIn.HasValue);
+        var recordsToday = allRecords.Where(x=>x.Date.Date == today ).ToList();
+        var presentToday = recordsToday.Where(e => e.CheckIn.HasValue).Select(x=>x.EmployeeId).Distinct().Count();
         var lateArrivals = recordsToday.Count(e=>e.CheckIn.HasValue && e.CheckIn.Value.TimeOfDay > lateThreshhold);
-        var OnLeaveToday = recordsToday.Count(x=>x.IsOnLeave == true);
-        var absentToday  = totalEmployees - (OnLeaveToday - presentToday);
+        var OnLeaveToday = recordsToday.Where(x=>x.IsOnLeave == true).Select(x=>x.EmployeeId).Distinct().Count();
+        var absentToday  = totalEmployees - (OnLeaveToday + presentToday);
         if(absentToday < 0) absentToday = 0;
         double attendancePercentage = totalEmployees == 0 ? 0
             : Math.Round(((double)presentToday / totalEmployees) * 100, 1);
@@ -206,6 +207,7 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
 
             var summary = new AttendanceSummaryDto()
             {
+                TotalEmployees = totalEmployees,
                 Today = new TodaySummaryDto
                 {
                     PresentToday = presentToday,
@@ -292,6 +294,7 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
     public async Task<ApiResponse<BulkAttendanceResponseDto>> BulkAttendanceAsync(BulkAttendanceRequestDto request,
         CancellationToken cancellationToken)
     {
+        
         var result = new BulkAttendanceResponseDto();
         var errors = new List<string>();
 
@@ -315,7 +318,7 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
                 if (existingRecord == null)
                 {
                     var checkInTime = record.CheckInTime ?? request.Date.Date.AddHours(8);
-                    var checkOutTime = record.CheckOutTime ?? request.Date.Date.AddHours(5);
+                    var checkOutTime = record.CheckOutTime ?? request.Date.Date.AddHours(17);
 
                     var attendanceRecord = new AttendanceRecord()
                     {
@@ -330,48 +333,60 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
                     var response = await repository.CheckIn(attendanceRecord, cancellationToken);
                     if (response > 0)
                     {
-                        return new ApiResponse<BulkAttendanceResponseDto>()
-                        {
-                            Message = "Attendance Create  successfully",
-                            StatusCode = StatusCodes.Status200OK,
-                        };
+                        result.Successful++;
+                    }
+                    else
+                    {
+                        result.Failed++;
+                        errors.Add(($"Failed to update attendance for employee {record.EmployeeId}"));
                     }
 
-                    return new ApiResponse<BulkAttendanceResponseDto>()
-                    {
-                        Message = "Failed to create attendance",
-                        StatusCode = StatusCodes.Status400BadRequest,
-                    };
+                    
                 }
                 bool updated = false;
-                if (record.CheckOut && existingRecord.CheckOut == null)
+                
+                if (record.CheckIn  && existingRecord.CheckIn == null)
                 {
                     existingRecord.CheckIn = record.CheckInTime ?? request.Date.Date.AddHours(8);
                     existingRecord.IsLate = existingRecord.CheckIn > request.Date.Date.AddHours(8);
                     updated = true;
                 }
 
+                if (record.CheckOut)
+                {
+                    if (existingRecord != null)
+                        existingRecord.CheckOut = record.CheckOutTime ?? request.Date.Date.AddHours(17);
+                    updated = true;
+                }
+
                 if (updated)
                 {
-                    existingRecord.UpdatedAt = DateTime.UtcNow;
-                    var data = await repository.UpdateAsync(existingRecord, cancellationToken);
-
-                    if (data > 0)
-                        
-                        return new ApiResponse<BulkAttendanceResponseDto>()
-                        {
-                            Message = "Update Employee Successfully",
-                            StatusCode = StatusCodes.Status200OK,
-                        };
-                    return new ApiResponse<BulkAttendanceResponseDto>()
+                    if (existingRecord != null)
                     {
-                        Message = "Failed to update attendance of Employee",
-                        StatusCode = StatusCodes.Status400BadRequest,
-                    };
+                        existingRecord.UpdatedAt = DateTime.UtcNow;
+                        var data = await repository.UpdateAsync(existingRecord, cancellationToken);
+
+                        if (data > 0)
+                        {
+                            result.Successful++;
+                        }
+                        else
+                        {
+                            result.Failed++;
+                            errors.Add(($"Failed to update attendance for employee {record.EmployeeId}"));  
+                        }
+                    }
+                    
+                    
+                }
+                else
+                {
+                    result.Successful++;
                 }
                 
                 
 
+               
             }
             
             catch (System.Exception e)
