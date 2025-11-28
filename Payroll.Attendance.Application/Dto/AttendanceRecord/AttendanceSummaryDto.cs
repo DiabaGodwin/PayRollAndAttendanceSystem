@@ -2,6 +2,7 @@ namespace Payroll.Attendance.Application.Dto.AttendanceRecord
 {
     public class AttendanceSummaryDto
     {
+        public int TotalEmployees { get; set; }
         public TodaySummaryDto Today { get; set; } = new();
         public MonthSummaryDto Month { get; set; } = new();
         public AllTimeSummaryDto AllTime { get; set; } = new();
