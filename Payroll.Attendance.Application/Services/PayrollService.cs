@@ -194,5 +194,30 @@ namespace Payroll.Attendance.Application.Services
                 };
             }
         }
+
+        public async Task<decimal> GetTotalPayrollAsync(CancellationToken cancellationToken)
+        {
+            return await repository.GetTotalPayrollAsync(cancellationToken);
+        }
+
+        public async Task<int> GetHeadCountAsync(CancellationToken cancellationToken)
+        {
+            return await repository.GetHeadCountAsync(cancellationToken);
+        }
+
+        public async Task<decimal> GetGrowthRateAsync(CancellationToken cancellationToken)
+        {
+            return await repository.GetGrowthRateAsync(cancellationToken);
+        }
+
+        public async Task<List<PayrollTrend>> GetMonthlyTrendAsync(CancellationToken cancellationToken)
+        {
+           return await repository.GetMonthlyTrendAsync(cancellationToken);
+        }
+
+        public async Task<List<DepartmentDistribution>> GetDepartmentSalaryDistributionAsync(CancellationToken cancellationToken)
+        {
+            return await repository.GetDepartmentDistributionAsync(cancellationToken);
+        }
     }
 }

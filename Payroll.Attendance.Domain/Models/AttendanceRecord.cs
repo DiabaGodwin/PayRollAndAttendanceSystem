@@ -19,6 +19,7 @@ public class AttendanceRecord
     public bool IsLate { get; set; }
     public bool LeftEarly { get; set; }
     public string? Remarks { get; set; }
+    public bool IsOnLeave { get; set; }
     public AttendanceStatus Status { get; set; } = AttendanceStatus.Present;
 
     public string? CheckInLocation { get; set; }

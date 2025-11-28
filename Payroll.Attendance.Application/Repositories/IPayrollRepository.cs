@@ -14,6 +14,11 @@ namespace Payroll.Attendance.Application.Repositories
         Task<bool> UpdatePayrollAsync(UpdatePayrollRequest request, CancellationToken cancellationToken);
         Task<bool> DeletePayrollAsync(int id, CancellationToken cancellationToken);
         Task<List<PayrollSummary>> GetAllPayrollSummaryAsync(CancellationToken cancellationToken);
+        Task<decimal> GetTotalPayrollAsync(CancellationToken cancellationToken);
+        Task<int> GetHeadCountAsync(CancellationToken cancellationToken);
+        Task<decimal> GetGrowthRateAsync(CancellationToken cancellationToken);
+        Task<List<PayrollTrend>> GetMonthlyTrendAsync(CancellationToken cancellationToken);
+        Task<List<DepartmentDistribution>> GetDepartmentDistributionAsync(CancellationToken cancellationToken);
         
       
     }
