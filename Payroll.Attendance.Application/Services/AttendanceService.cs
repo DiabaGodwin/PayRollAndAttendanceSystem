@@ -315,8 +315,23 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
             {
                 var existingRecord =
                     await repository.GetByDateAsync(record.EmployeeId, request.Date, cancellationToken);
-                if (existingRecord == null)
+                if (existingRecord != null)
                 {
+                    if (record.CheckIn && existingRecord.CheckOut != null)
+                    {
+                        result.Failed++;
+                        errors.Add($"Employee {record.EmployeeId} already checked in on {request.Date.Date}");
+                        continue;
+                    }
+
+                    if (record.CheckOut && existingRecord.CheckOut != null)
+                    {
+                        result.Failed++;
+                        errors.Add($"Employee {record.EmployeeId} already checked out on {request.Date.Date}");
+                        continue;
+                    }
+
+
                     var checkInTime = record.CheckInTime ?? request.Date.Date.AddHours(8);
                     var checkOutTime = record.CheckOutTime ?? request.Date.Date.AddHours(17);
 

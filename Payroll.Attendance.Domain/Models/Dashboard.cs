@@ -41,6 +41,7 @@ public class Reminder
     public DateTime DueDate { get; set; }
     public string? Department { get; set; }
     public DateTime CreatedAt { get; set; }
+    public bool IsCompleted { get; set; }
     
 }
 public  class Activity
@@ -66,8 +67,9 @@ public  class PayrollTrend
 public class DepartmentDistribution
 {
     public Department? DepartmentName { get; set; }
-    public string? SalaryAmount { get; set; }
+    public string? SalaryAmount { get; set; } 
     public decimal Percentage { get; set; }
+    public int  Count { get; set; }
     public decimal TotalAmount { get; set; }
 }
 
