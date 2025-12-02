@@ -12,11 +12,11 @@ namespace Payroll.Attendance.Application.Repositories
         Task  DeleteAsync(int id, CancellationToken cancellationToken);
         Task<int> CheckOut(int employeeId, CancellationToken cancellationToken);
         
-        Task<AttendanceRecord?> GetByDateAsync(int employeeId, DateTime date,
+        Task<AttendanceRecord?> CheckIfAttendanceExistAsync(int employeeId, DateTime date,
             CancellationToken cancellationToken);
         Task<List<AttendanceRecord>> GetAllSummaryAsync(CancellationToken cancellationToken);
         Task<int> CountAsync(CancellationToken cancellationToken);
-        Task<int> UpdateAsync(AttendanceRecord record, CancellationToken cancellationToken);
+        Task<int> UpdateBulkAttendanceAsync(AttendanceRecord record, CancellationToken cancellationToken);
     
         Task<int> CountPresentTodayAsync(DateTime today, CancellationToken cancellationToken);
         Task<List<DepartmentAttendance>> GetDepartmentAttendanceAsync(DateTime today,

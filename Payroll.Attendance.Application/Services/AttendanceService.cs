@@ -14,7 +14,7 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
     public async Task<ApiResponse<int>> CheckIn( AttendanceRequest request,  CancellationToken cancellationToken)
     {
         var existingRecord =
-            await repository.GetByDateAsync(request.EmployeeId, 
+            await repository.CheckIfAttendanceExistAsync(request.EmployeeId, 
                 DateTime.UtcNow.Date, cancellationToken);
         if (existingRecord != null )
         {
@@ -107,7 +107,7 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
     {
          
        
-       var existingRecord = await repository.GetByDateAsync(request.EmployeeId, DateTime.UtcNow.Date, cancellationToken);
+       var existingRecord = await repository.CheckIfAttendanceExistAsync(request.EmployeeId, DateTime.UtcNow.Date, cancellationToken);
        
        if (existingRecord == null || existingRecord.CheckIn == null)
        {
@@ -313,35 +313,19 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
         {
             try
             {
+                //Checking if the attendance record exist
                 var existingRecord =
-                    await repository.GetByDateAsync(record.EmployeeId, request.Date, cancellationToken);
-                if (existingRecord != null)
+                    await repository.CheckIfAttendanceExistAsync(record.EmployeeId, request.Date, cancellationToken);
+                //Adding new records
+                if (existingRecord == null)
                 {
-                    if (record.CheckIn && existingRecord.CheckOut != null)
-                    {
-                        result.Failed++;
-                        errors.Add($"Employee {record.EmployeeId} already checked in on {request.Date.Date}");
-                        continue;
-                    }
-
-                    if (record.CheckOut && existingRecord.CheckOut != null)
-                    {
-                        result.Failed++;
-                        errors.Add($"Employee {record.EmployeeId} already checked out on {request.Date.Date}");
-                        continue;
-                    }
-
-
-                    var checkInTime = record.CheckInTime ?? request.Date.Date.AddHours(8);
-                    var checkOutTime = record.CheckOutTime ?? request.Date.Date.AddHours(17);
-
                     var attendanceRecord = new AttendanceRecord()
                     {
                         EmployeeId = record.EmployeeId,
                         Date = request.Date,
-                        CheckIn = record.CheckIn ? checkInTime : null,
-                        CheckOut = record.CheckOut ? checkOutTime : null,
-                        IsLate = record.CheckIn && checkInTime > request.Date.Date.AddHours(8),
+                        CheckIn = record.CheckInTime,
+                        CheckOut = record.CheckOutTime,
+                        IsLate = record.CheckInTime > DateTime.Today.Date.AddHours(8),
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
                     };
@@ -355,31 +339,53 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
                         result.Failed++;
                         errors.Add(($"Failed to update attendance for employee {record.EmployeeId}"));
                     }
-
-                    
                 }
-                bool updated = false;
+                //preventing double checkin
+                if (existingRecord.CheckIn != null)
+                {
+                    result.Failed++;
+                    errors.Add($"Employee {record.EmployeeId} already checked in on {request.Date.Date}");
+                    continue;
+                }
                 
-                if (record.CheckIn  && existingRecord.CheckIn == null)
+                //Preventing double checkout
+
+                if (
+                    existingRecord.CheckOut != null)
                 {
-                    existingRecord.CheckIn = record.CheckInTime ?? request.Date.Date.AddHours(8);
-                    existingRecord.IsLate = existingRecord.CheckIn > request.Date.Date.AddHours(8);
+                    result.Failed++;
+                    errors.Add($"Employee {record.EmployeeId} already checked out on {request.Date.Date}");
+                    continue;
+                }
+                //updating attendance records
+                
+                bool updated = false;
+                //Updade checkin
+
+                if (existingRecord.CheckIn.HasValue && existingRecord.CheckOut.HasValue)
+                {
+                    if (record.CheckInTime.HasValue)
+                    {
+                        existingRecord.CheckIn = record.CheckInTime.Value;
+                        existingRecord.IsLate = existingRecord.CheckIn.Value.TimeOfDay > new TimeSpan(8, 0, 0);
+                    }
+                }
+                //Update CheckOut
+
+                if (record.CheckOutTime.HasValue)
+                {
+                    if (existingRecord != null) 
+                        existingRecord.CheckOut = record.CheckOutTime.Value;
                     updated = true;
                 }
-
-                if (record.CheckOut)
-                {
-                    if (existingRecord != null)
-                        existingRecord.CheckOut = record.CheckOutTime ?? request.Date.Date.AddHours(17);
-                    updated = true;
-                }
-
+                
+                 //Update save
                 if (updated)
                 {
                     if (existingRecord != null)
                     {
                         existingRecord.UpdatedAt = DateTime.UtcNow;
-                        var data = await repository.UpdateAsync(existingRecord, cancellationToken);
+                        var data = await repository.UpdateBulkAttendanceAsync(existingRecord, cancellationToken);
 
                         if (data > 0)
                         {
@@ -391,16 +397,12 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
                             errors.Add(($"Failed to update attendance for employee {record.EmployeeId}"));  
                         }
                     }
-                    
-                    
                 }
                 else
                 {
                     result.Successful++;
                 }
                 
-                
-
                
             }
             
