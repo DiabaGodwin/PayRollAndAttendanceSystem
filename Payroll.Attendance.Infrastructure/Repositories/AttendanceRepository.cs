@@ -78,12 +78,11 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
         return result.Id;
     }
     
-    public async Task<AttendanceRecord?> GetByDateAsync(int employeeId, DateTime date,
+    public async Task<AttendanceRecord?> CheckIfAttendanceExistAsync(int employeeId, DateTime date,
         CancellationToken cancellationToken)
     {
-        var next = date.AddDays(1); 
         return await dbContext.Attendances
-            .Where(a => a.Date >= date && a.Date < next && a.EmployeeId == employeeId)
+            .Where(a => a.Date.Date >= date.Date && a.EmployeeId == employeeId)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -99,7 +98,7 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
         return await dbContext.Employees.CountAsync((cancellationToken));
     }
 
-    public async Task<int> UpdateAsync(AttendanceRecord record, CancellationToken cancellationToken)
+    public async Task<int> UpdateBulkAttendanceAsync(AttendanceRecord record, CancellationToken cancellationToken)
     {
          dbContext.Attendances.Update(record);
          var existing = dbContext.Attendances.FirstOrDefault(x => x.EmployeeId == record.Id && x.Date.Date == DateTime.Today);
