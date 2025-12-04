@@ -157,7 +157,7 @@ var result = await dbContext.Payrolls.Where(x => x.Employee != null && x.Employe
                 .GroupBy(x => x.Department)
                 .Select(g => new DepartmentDistribution
                 {
-                    DepartmentName = g.Key,
+                    DepartmentName = g.Key.ToString(),
                     TotalAmount = g.Sum((x => x.Total))
                 })
                 .ToListAsync(cancellationToken);

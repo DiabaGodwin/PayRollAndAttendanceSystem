@@ -25,6 +25,7 @@ public sealed class ApplicationDbContext : DbContext
     public DbSet<Activity> Activities {get;set;}
     public DbSet<Reminder> Reminders {get;set;}
     
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
