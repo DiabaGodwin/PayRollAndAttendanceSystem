@@ -24,7 +24,7 @@ namespace Payroll.Attendance.Application.Repositories
         Task<List<Activity>> GetRecentActivitiesAsync(int count, CancellationToken cancellationToken);
         Task<bool> ClockInAsync(int employeeId, DateTime now, CancellationToken cancellationToken);
         Task<bool> ClockOutAsync(int employeeId, DateTime now, CancellationToken cancellationToken);
-   
+        Task<List<AttendanceRecord>> GetTodayAttendanceAsync( CancellationToken cancellationToken);
      
         
     }

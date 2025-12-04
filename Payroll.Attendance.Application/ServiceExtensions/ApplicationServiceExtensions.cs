@@ -14,6 +14,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IEmployeeService, EmployeeService>();
         services.AddScoped<IDepartmentService, DepartmentService>();
         services.AddScoped<IPayrollService, PayrollService>();
+        services.AddScoped<IDashboardService, DashboardService>();
         return services;
     }
     

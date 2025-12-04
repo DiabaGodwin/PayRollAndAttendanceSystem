@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Dto.AttendanceRecord;
 using Payroll.Attendance.Application.Repositories;
+using Payroll.Attendance.Domain.Enum;
 using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Application.Services;
@@ -160,6 +161,7 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
           {
        var employees = await employeeRepository.GetAllEmployeesAsync(new PaginationRequest{PageNumber = 1, PageSize = 1000}, cancellationToken);
        var totalEmployees =  employees.Count;
+      
         
       
         
@@ -171,22 +173,31 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
         var allRecords = await repository.GetAllSummaryAsync(cancellationToken);
        
         //Daily Summary
-        var recordsToday = allRecords.Where(x=>x.Date.Date == today ).ToList();
+        var recordsToday = allRecords.Where(x=>x.Date.Date == today.Date ).ToList();
         var presentToday = recordsToday.Where(e => e.CheckIn.HasValue).Select(x=>x.EmployeeId).Distinct().Count();
-        var lateArrivals = recordsToday.Count(e=>e.CheckIn.HasValue && e.CheckIn.Value.TimeOfDay > lateThreshhold);
+        var lateArrivals = recordsToday.Where(e=>e.CheckIn.HasValue && e.CheckIn.Value.TimeOfDay > lateThreshhold).Select(x=>x.EmployeeId).Distinct().Count();
         var OnLeaveToday = recordsToday.Where(x=>x.IsOnLeave == true).Select(x=>x.EmployeeId).Distinct().Count();
         var absentToday  = totalEmployees - (OnLeaveToday + presentToday);
         if(absentToday < 0) absentToday = 0;
         double attendancePercentage = totalEmployees == 0 ? 0
             : Math.Round(((double)presentToday / totalEmployees) * 100, 1);
+
+        var employeeIds = allRecords.Select(r => r.EmployeeId).Distinct().ToHashSet();
         
         //MONTH SUMMARY
         var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
-        var nextMonth = firstDayOfMonth.AddMonths(1);
-        var monthRecords = allRecords.Where(x=>x.Date >= firstDayOfMonth && x.Date <= nextMonth).ToList();
+        var endOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+        var monthRecords = allRecords.Where(x=>x.Date >= firstDayOfMonth && x.Date <= endOfMonth && employeeIds.Contains(x.EmployeeId)).ToList();
         var workingDaysMonth = monthRecords.Select(x => x.Date.Date).Distinct().Count();
-        var overallPresentMonth = monthRecords.Count(x => x.CheckIn.HasValue);
-        var overallLeaveMonth = monthRecords.Count(x => x.IsOnLeave == true);
+        var monthGroups = monthRecords.GroupBy(x=>new {x.EmployeeId, Day = x.Date.Date}).
+                Select(d=>new
+                {
+                    EmployeeId = d.Key.EmployeeId,
+                    Day = d.Key.Day,
+                    Status = d.OrderByDescending(x=>x.Date).First().Status,
+                }).ToList();
+        var overallPresentMonth = monthGroups.Count(r => r.Status == AttendanceStatus.Present);
+        var overallLeaveMonth = monthGroups.Count(g=>g.Status == AttendanceStatus.Leave);
         var overallExpectedMonth = totalEmployees * workingDaysMonth;
         var overallAbsentMonth = overallExpectedMonth - (overallPresentMonth + overallLeaveMonth);
         if(overallAbsentMonth < 0) overallAbsentMonth = 0;
@@ -198,7 +209,7 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
         var workingDaysAll = allRecords.Select(e => e.Date.Date).Distinct().Count();
             var totalPresent = allRecords.Count(e=>e.CheckIn.HasValue);
             var totalLeave = allRecords.Count(x=>x.IsOnLeave == true);
-            var totalExpectedAll = totalEmployees * workingDaysAll;
+            var totalExpectedAll = totalEmployees * workingDaysAll; 
 
             var totalAbsent = totalExpectedAll - (totalPresent + totalLeave);
             if(totalAbsent < 0) totalAbsent = 0;
@@ -424,5 +435,28 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
                 StatusCodes.Status207MultiStatus,
             
         };
+    }
+
+    public async Task<ApiResponse<List<AttendanceResponseDto>>> GetTodayAttendanceAsync(
+        CancellationToken cancellationToken)
+    {
+        var date = DateTime.UtcNow.Date;
+            var records = await repository.GetTodayAttendanceAsync(cancellationToken);
+            var response = new List<AttendanceResponseDto>();
+            foreach (var r in  records)
+
+            {
+                var result = r.Adapt(new AttendanceResponseDto());
+                result.FirstName = r.Employee.FirstName;
+                result.Surname = r.Employee.Surname;
+                result.Department = r.Employee.Department?.Name;
+                response.Add(result);
+            }
+            return new ApiResponse<List<AttendanceResponseDto>>()
+            {
+                Message = "Today Attendance retrieved successfully",
+                StatusCode = StatusCodes.Status200OK,
+                Data = response
+            };
     }
 }

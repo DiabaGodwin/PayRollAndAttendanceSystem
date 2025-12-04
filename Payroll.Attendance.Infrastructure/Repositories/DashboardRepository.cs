@@ -15,7 +15,7 @@ public class DashboardRepository(ApplicationDbContext dbContext) : IDashboardRep
         return await dbContext.Employees.CountAsync(cancellationToken);
     }
 
-    public async Task<decimal> GetTotalPayrollAsync(CancellationChangeToken cancellationChangeToken)
+    public async Task<decimal> GetTotalPayrollAsync(CancellationToken cancellationToken)
     {
         return await dbContext.Payrolls.SumAsync(f => f.NetPay);
     }
@@ -26,41 +26,29 @@ public class DashboardRepository(ApplicationDbContext dbContext) : IDashboardRep
     }
     
 
-    public async Task<int> GetPendingReminderCountAsync(CancellationChangeToken cancellationChangeToken)
+    public async Task<int> GetPendingReminderCountAsync(CancellationToken cancellationChangeToken)
     {
         return await dbContext.Reminders.CountAsync(e => e.IsCompleted);
     }
 
-    public async Task<List<PayrollTrend>> GetPayrollTrendsAsync(int month,  CancellationChangeToken cancellationChangeToken)
+    public async Task<List<PayrollTrend>> GetPayrollTrendsAsync(CancellationToken cancellationToken)
     {
-        var query = dbContext.Payrolls.AsQueryable();
-       
-        if (month > 0)
-        {
-            query = query.Where(e=>e.PayPeriod.Month == month);
-        }
-
-        return await query.GroupBy(a => a.PayPeriod.Month).Select(g => new PayrollTrend
-        {
-            Month = g.Key,
-            Amount = g.Sum(e => e.NetPay),
-            
-        }).ToListAsync();
+       return await dbContext.Payrolls.GroupBy(a=>a.PayPeriod.Month).Select(g=>new PayrollTrend
+       {
+           Month = g.Key,
+           Amount = g.Sum(a => a.NetPay),
+       }).OrderByDescending(x=>x.Month).ToListAsync();
     }
 
-    public async Task<List<DepartmentDistribution>> GetDepartmentDistributionsAsync(string department, CancellationChangeToken cancellationChangeToken)
+    public async Task<List<DepartmentDistribution>> GetDepartmentDistributionsAsync(CancellationToken cancellationToken)
     {
-       var query = dbContext.Employees.AsQueryable();
-       if (!string.IsNullOrEmpty(department))
-       {
-           query = query.Where(e => e.Department.Name == department);
-       }
-
-       return await query.GroupBy(e => e.Department).Select(g => new DepartmentDistribution
-       {
-           DepartmentName = g.Key,
-           Count = g.Count()
-       }).ToListAsync<DepartmentDistribution>();
+        var result = await dbContext.Employees.GroupBy(e =>  e.Department!.Name ?? "Unkown")
+            .Select(f => new DepartmentDistribution
+            {
+                DepartmentName = f.Key,
+                Count = f.Count()
+            }).ToListAsync(cancellationToken);
+        return result;
     }
 
     public async Task<List<Reminder>> GetPendingRemindersAsync(CancellationToken cancellatioToken)

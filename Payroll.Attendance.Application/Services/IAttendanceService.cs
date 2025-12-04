@@ -19,4 +19,5 @@ public interface IAttendanceService
  
     Task<ApiResponse<BulkAttendanceResponseDto>> BulkAttendanceAsync(BulkAttendanceRequestDto request,
         CancellationToken cancellationToken);
+    Task<ApiResponse<List<AttendanceResponseDto>>> GetTodayAttendanceAsync( CancellationToken cancellationToken);
 } 

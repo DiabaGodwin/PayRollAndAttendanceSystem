@@ -89,6 +89,7 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
     public async Task<List<AttendanceRecord>> GetAllSummaryAsync(CancellationToken cancellationToken)
     {
         var totalEmployees = await dbContext.Employees.Select(e => e.Id).Distinct().CountAsync(cancellationToken);
+        var employeeIds =  dbContext.Employees.Select(e=>e.Id).ToHashSet();
         return await dbContext.Attendances.Include(x => x.Employee).ToListAsync(cancellationToken);
         
     }
@@ -166,5 +167,13 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
         dbContext.Attendances.Update((attendance));
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    public async Task<List<AttendanceRecord>> GetTodayAttendanceAsync(CancellationToken cancellationToken)
+    {
+        var today = DateTime.UtcNow.Date;
+        return await dbContext.Attendances.Include(x=>x.Employee)
+            .ThenInclude(e=>e.Department).Where(x=>x.Date.Date >= today.Date && x.CheckIn != null)
+            .ToListAsync(cancellationToken);
     }
 }

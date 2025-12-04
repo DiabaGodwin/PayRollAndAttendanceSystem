@@ -7,13 +7,10 @@ namespace Payroll.Attendance.Domain.Models
 
 public class DashboardSummary
 {
-    public string WelcomeMessage { get; set; } = null!;
-    public List<KeyMetric> KeyMetrics { get; set; } = new();
-    public List<DepartmentAttendance> DepartmentAttendances { get; set; } = new();
-    public List<Reminder> Reminders { get; set; } = new();
-    public List<Activity> Activities { get; set; } = new();
-    public List<PayrollTrend> PayrollTrends { get; set; } = new();
-    public List<DepartmentDistribution> DepartmentDistributions { get; set; } = new();
+    public int TotalEmployees { get; set; }
+    public int PendingReminders { get; set; }
+    public int AttendanceRate { get; set; }
+    public decimal TotalPayroll { get; set; }
 
 }
 
@@ -28,7 +25,7 @@ public  class KeyMetric
 
 public  class DepartmentAttendance
 {
-    public string? DepartmentName { get; set; }
+    public string DepartmentName { get; set; } = null!;
     public int EmployeeCount { get; set; }
     public decimal PresentCount { get; set; }
 }
@@ -66,7 +63,7 @@ public  class PayrollTrend
 
 public class DepartmentDistribution
 {
-    public Department? DepartmentName { get; set; }
+    public string DepartmentName { get; set; }
     public string? SalaryAmount { get; set; } 
     public decimal Percentage { get; set; }
     public int  Count { get; set; }

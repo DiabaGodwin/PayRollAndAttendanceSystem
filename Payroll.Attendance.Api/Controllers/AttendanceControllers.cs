@@ -26,7 +26,13 @@ public class AttendanceController(IAttendanceService service) : ControllerBase
         var result = await service.GetByIdAsync(id, cancellationToken);
         return StatusCode(result.StatusCode,result);
         
-    }  
+    } 
+    [HttpGet("today")]
+        public async Task<IActionResult> GetTodayAttendance(CancellationToken cancellationToken)
+    {
+        var result = await service.GetTodayAttendanceAsync(cancellationToken);
+        return StatusCode(result.StatusCode,result);
+    }
     
     [AllowAnonymous]
     [HttpPost("CheckIn")]
