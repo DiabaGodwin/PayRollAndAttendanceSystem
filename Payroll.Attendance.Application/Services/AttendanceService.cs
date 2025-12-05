@@ -160,7 +160,9 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
     public async Task<ApiResponse<AttendanceSummaryDto>> GetSummaryAsync(CancellationToken cancellationToken)
           {
        var employees = await employeeRepository.GetAllEmployeesAsync(new PaginationRequest{PageNumber = 1, PageSize = 1000}, cancellationToken);
-       var totalEmployees =  employees.Count;
+       var currentEmployeeeIds = employees.Select(e => e.Id).ToHashSet();
+       
+       var totalEmployees =  currentEmployeeeIds.Count;
       
         
       
@@ -171,13 +173,14 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
         
         
         var allRecords = await repository.GetAllSummaryAsync(cancellationToken);
+        var currentEmployeeRecords = allRecords.Where(e=>currentEmployeeeIds.Contains(e.EmployeeId)).ToList();
        
-        //Daily Summary
+        //Daily Today's Summary
         var recordsToday = allRecords.Where(x=>x.Date.Date == today.Date ).ToList();
         var presentToday = recordsToday.Where(e => e.CheckIn.HasValue).Select(x=>x.EmployeeId).Distinct().Count();
         var lateArrivals = recordsToday.Where(e=>e.CheckIn.HasValue && e.CheckIn.Value.TimeOfDay > lateThreshhold).Select(x=>x.EmployeeId).Distinct().Count();
-        var OnLeaveToday = recordsToday.Where(x=>x.IsOnLeave == true).Select(x=>x.EmployeeId).Distinct().Count();
-        var absentToday  = totalEmployees - (OnLeaveToday + presentToday);
+        var onLeaveToday = recordsToday.Where(x=>x.IsOnLeave == true).Select(x=>x.EmployeeId).Distinct().Count();
+        var absentToday  = totalEmployees - (onLeaveToday + presentToday);
         if(absentToday < 0) absentToday = 0;
         double attendancePercentage = totalEmployees == 0 ? 0
             : Math.Round(((double)presentToday / totalEmployees) * 100, 1);
@@ -187,7 +190,7 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
         //MONTH SUMMARY
         var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
         var endOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
-        var monthRecords = allRecords.Where(x=>x.Date >= firstDayOfMonth && x.Date <= endOfMonth && employeeIds.Contains(x.EmployeeId)).ToList();
+        var monthRecords = currentEmployeeRecords.Where(x=>x.Date>= firstDayOfMonth && x.Date <= endOfMonth).ToList();
         var workingDaysMonth = monthRecords.Select(x => x.Date.Date).Distinct().Count();
         var monthGroups = monthRecords.GroupBy(x=>new {x.EmployeeId, Day = x.Date.Date}).
                 Select(d=>new
@@ -224,7 +227,7 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
                     PresentToday = presentToday,
                     AbsentToday = absentToday,
                     LateArrivals = lateArrivals,
-                    OnLeave = OnLeaveToday,
+                    OnLeave = onLeaveToday,
                     AttendancePercentage = attendancePercentage
                 },
                 Month = new MonthSummaryDto()
@@ -458,5 +461,28 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
                 StatusCode = StatusCodes.Status200OK,
                 Data = response
             };
+    }
+
+    public async Task<ApiResponse<List<TodayAttendanceDto>>> GetTodayAttendanceWithoutTokenAsync(CancellationToken cancellationToken)
+    {
+        var date = DateTime.UtcNow.Date;
+        var records = await repository.GetTodayAttendanceWithoutTokenAsync(cancellationToken);
+        var response = new List<TodayAttendanceDto>();
+        foreach (var r in records)
+        {
+            var result = r.Adapt(new TodayAttendanceDto());
+            result.Title = r.Employee.Title;
+            result.FirstName = r.Employee.FirstName;
+            result.Surname = r.Employee.Surname;
+            result.JobPosition = r.Employee.JobPosition;
+            response.Add(result);
+        }
+
+        return new ApiResponse<List<TodayAttendanceDto>>()
+        {
+            Message = "Today Attendance retrieved successfully",
+            StatusCode = StatusCodes.Status200OK,
+            Data = response
+        };
     }
 }
