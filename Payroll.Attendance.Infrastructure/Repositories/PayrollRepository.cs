@@ -95,10 +95,10 @@ var result = await dbContext.Payrolls.Where(x => x.Employee != null && x.Employe
 
             var summary = new PayrollSummary
             {
-                TotalBasicSalary = (int)data.Sum(x => x.BasicSalary),
-                TotalAllowance = (int)data.Sum(x => x.Allowance),
-                TotalDeduction = (int)data.Sum(x => x.TotalDeduction),
-                NetPayroll = (int)data.Sum(x => x.NetPay)
+                TotalBasicSalary = data.Sum(x => x.BasicSalary),
+                TotalAllowance = data.Sum(x => x.Allowance ),
+                TotalDeduction = data.Sum(x => x.TotalDeduction),
+                NetPayroll = data.Sum(x => x.NetPay)
             };
 
             return new List<PayrollSummary> { summary };

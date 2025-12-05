@@ -176,4 +176,11 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
             .ThenInclude(e=>e.Department).Where(x=>x.Date.Date >= today.Date && x.CheckIn != null)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<List<AttendanceRecord>> GetTodayAttendanceWithoutTokenAsync(CancellationToken cancellationToken)
+    {
+        var today = DateTime.UtcNow.Date;
+        return await dbContext.Attendances.Include(x => x.Employee)
+            .Where(x => x.Date.Date >= today.Date && x.CheckIn != null).ToListAsync(cancellationToken);
+    }
 }

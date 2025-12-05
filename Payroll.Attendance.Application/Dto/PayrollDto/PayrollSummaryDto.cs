@@ -2,9 +2,9 @@ namespace Payroll.Attendance.Application.Dto.PayrollDto;
 
 public class PayrollSummaryDto
 {
-    public int TotalBasicSalary { get; set; }
-    public int TotalAllowance { get; set; }
-    public int TotalDeduction { get; set; }
-    public int NetPayroll { get; set; }
+    public decimal TotalBasicSalary { get; set; }
+    public decimal TotalAllowance { get; set; }
+    public decimal TotalDeduction { get; set; }
+    public decimal NetPayroll { get; set; }
 
 }

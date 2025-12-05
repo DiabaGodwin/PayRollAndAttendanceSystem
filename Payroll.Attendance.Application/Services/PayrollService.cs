@@ -183,8 +183,16 @@ namespace Payroll.Attendance.Application.Services
                     Message = "Payroll summary retrieved successfully",
                     StatusCode = StatusCodes.Status200OK,
                     Data = new PayrollSummaryDto()
+                    {
+                        TotalBasicSalary = sum.TotalBasicSalary,
+                        TotalAllowance = sum.TotalAllowance,
+                        TotalDeduction = sum.TotalDeduction,
+                        NetPayroll = sum.NetPayroll
+                    }
                 };
+                
             }
+            
             catch (System.Exception e)
             {
                 return new ApiResponse<PayrollSummaryDto>()

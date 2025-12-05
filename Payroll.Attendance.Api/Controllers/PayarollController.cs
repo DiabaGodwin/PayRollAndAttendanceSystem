@@ -24,7 +24,7 @@ namespace Payroll.Attendance.Api.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpGet("Payroll summary")]
+        [HttpGet("summary")]
         public async Task<IActionResult> GetPayrollSummar(CancellationToken cancellationToken)
         {
             var result = await service.GetPayrollSummaryAsync(cancellationToken);
