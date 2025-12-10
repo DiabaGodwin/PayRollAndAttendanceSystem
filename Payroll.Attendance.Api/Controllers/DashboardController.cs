@@ -54,6 +54,13 @@ public class DashboardController(IDashboardService service) : ControllerBase
         var result = await service.GetFullDashboardAsync(cancellationToken);
         return StatusCode(result.StatusCode, result);
     }
+
+    [HttpGet("recent/activites")]
+    public async Task<IActionResult> GetRecentActivities(CancellationToken cancellationToken)
+    {
+        var result = await service.GetActivityAsync(cancellationToken);
+        return StatusCode(result.StatusCode, result);
+    }
     
     
     

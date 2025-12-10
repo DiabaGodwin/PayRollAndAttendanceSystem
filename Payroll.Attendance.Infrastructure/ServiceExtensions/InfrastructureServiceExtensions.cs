@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Payroll.Attendance.Application.Repositories;
+using Payroll.Attendance.Application.Services;
 using Payroll.Attendance.Application.Utility;
 using Payroll.Attendance.Infrastructure.Data;
 using Payroll.Attendance.Infrastructure.Repositories;
@@ -21,6 +22,8 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IDepartmentRepository, DepartmentRepository>();
         services.AddScoped<IPayrollRepository, PayrollRepository>();
         services.AddScoped<IDashboardRepository, DashboardRepository>();
+        services.AddScoped<IAuditTrailRepo, AuditTrailRepo>();
+        services.AddScoped<IUnitOfWork , UnitOfWork>();
         
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));

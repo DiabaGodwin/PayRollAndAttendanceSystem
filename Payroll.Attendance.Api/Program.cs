@@ -23,6 +23,7 @@ builder.WebHost.ConfigureKestrel(options =>
 
 // Add services to the container.
 // Add services to the container
+builder.Services.AddHttpContextAccessor(); 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddInfrastructureServices(builder.Configuration);

@@ -8,7 +8,8 @@ using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Application.Services
 {
-    public class PayrollService(IPayrollRepository repository, ILogger<PayrollService> logger) : IPayrollService
+    public class PayrollService(IPayrollRepository repository,
+        ILogger<PayrollService> logger, IAuditTrailRepo auditTrailRepo, ICurrentUserService currentUserService ) : IPayrollService
     {
         public async Task<ApiResponse<int>> CreatePayrollAsync(CreatePayrollDto dto, CancellationToken cancellationToken)
         {
@@ -35,6 +36,14 @@ namespace Payroll.Attendance.Application.Services
                     PayslipPath = $"/payslips/{dto.PayslipNumber}.pdf"
                 };
                 var result = await repository.CreatePayrollAsync(payroll,cancellationToken);
+                var audit = new AuditTrail
+                {
+                    Action = "PaysrollCreated",
+                    Descriptions = $"Employee payslip generated",
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = currentUserService.UserId,
+                };
+                await auditTrailRepo.SaveAuditTrail(audit, cancellationToken);
 
                 return new ApiResponse<int>()
                 {
@@ -67,6 +76,14 @@ namespace Payroll.Attendance.Application.Services
                 var result  = await repository.GetPayrollByIdAsync(dto.Id, cancellationToken);
                 if (result == null)
                 {
+                    var audit = new AuditTrail
+                    {
+                        Action = "PayslipGenerated",
+                        Descriptions = $"Employee payslip generated",
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = currentUserService.UserId,
+                    };
+                    await auditTrailRepo.SaveAuditTrail(audit, cancellationToken);
                     return new ApiResponse<GeneratePayslipDto>()
                     {
                         Message = "Payslipp record not found",
@@ -138,12 +155,25 @@ namespace Payroll.Attendance.Application.Services
         {
             var result = await repository.UpdatePayrollAsync( request, cancellationToken);
             if (result)
+            {
+                var audit = new AuditTrail
+                {
+                    Action = nameof(UpdatePayrollAsync),
+                    Descriptions = $"Payroll updated successfully with ID {id}",
+                    UpdatedAt = DateTime.UtcNow,
+                    UpdatedBy = currentUserService.UserId, 
+                };
+                await auditTrailRepo.SaveAuditTrail(audit, cancellationToken);
+                
                 return new ApiResponse<bool>()
                 {
                     Message = "Payroll updated successfully",
                     StatusCode = StatusCodes.Status200OK,
                     Data = result
                 };
+                
+            }
+                
             return new ApiResponse<bool>()
             {
                 Message = "Payroll failed to update",
@@ -156,6 +186,15 @@ namespace Payroll.Attendance.Application.Services
         {
            var res = await repository.DeletePayrollAsync(id, cancellationToken);
            var response = res.Adapt(new List<PayrollResponseDto>());
+           
+           var audit = new AuditTrail
+           {
+               Action = "PaysrollDelete",
+               Descriptions = $"Employee payslip deleted successfully",
+               UpdatedAt = DateTime.UtcNow,
+               UpdatedBy = currentUserService.UserId,
+           };
+           await auditTrailRepo.SaveAuditTrail(audit, cancellationToken);
 
            return new ApiResponse<List<PayrollResponseDto>>()
            {

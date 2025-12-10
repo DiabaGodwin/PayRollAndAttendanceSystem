@@ -17,6 +17,7 @@ public interface IDashboardService
     Task<ApiResponse<int>> DeleteReminderAsync(int id, CancellationToken cancellationToken);
     Task<ApiResponse<FullDashboardResponseDto>> GetFullDashboardAsync(
         CancellationToken cancellationToken);
+    Task<ApiResponse<List<ActivityDto>>> GetActivityAsync(CancellationToken cancellationToken);
     
 
 }

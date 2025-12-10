@@ -73,4 +73,21 @@ public class DashboardRepository(ApplicationDbContext dbContext) : IDashboardRep
 
 
     }
+
+    public async Task<List<AttendanceRecord>> GetAllSummaryAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Attendances.Include(f => f.Employee).OrderByDescending(f => f.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<PayrollRecord>> GetAllPayrollAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Payrolls.Include(f => f.Employee).OrderByDescending(f => f.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<Department>> GetAllDepartmentsAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Departments.Include(x=>x.Employees).OrderByDescending(x=>x.CreatedAt).ToListAsync(cancellationToken);
+    }
 }

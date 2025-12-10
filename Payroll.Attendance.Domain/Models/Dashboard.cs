@@ -42,16 +42,18 @@ public class Reminder
     
 }
 public  class Activity
-{
-    public int Id { get; set; }
-    public int EmployeeId {get; set;}
-    public string? EmployeeName { get; set; }
-    public string? Action { get; set; }
-    public DateTime Timestamp { get; set; }
-    public string? TimeDisplay { get; set; }
-    public string? Status { get; set; }
-    public DateTime CreatedAt { get; set; }    
-}
+ {
+     
+     public int Id { get; set; }
+     public int EmployeeId { get; set; }
+     public int RecordId { get; set; }
+     public string Module {get; set; }
+     public string Description { get; set; }
+     public string EmployeeName { get; set; }
+     public string Action { get; set; }
+     public DateTime Timestamp { get; set; }
+     
+ }
 
 public  class PayrollTrend
 {
