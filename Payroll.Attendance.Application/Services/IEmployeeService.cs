@@ -5,7 +5,7 @@ namespace Payroll.Attendance.Application.Services;
 
 public interface IEmployeeService
 {
-    Task<ApiResponse<int>> AddEmployeeAsync(AddEmployeeDto addEmployeeDto, CancellationToken token);
+    Task<ApiResponse<EmployeeResponseDto>> AddEmployeeAsync(AddEmployeeDto addEmployeeDto, CancellationToken token);
 
     Task<ApiResponse<List<EmployeeResponseDto>>> GetAllEmployeesAsync(PaginationRequest request,
         CancellationToken cancellationToken);

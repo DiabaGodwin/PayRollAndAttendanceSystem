@@ -27,6 +27,9 @@ namespace Payroll.Attendance.Application.Repositories
         Task<bool> ClockOutAsync(int employeeId, DateTime now, CancellationToken cancellationToken);
         Task<List<AttendanceRecord>> GetTodayAttendanceAsync( CancellationToken cancellationToken);
         Task<List<AttendanceRecord>>GetTodayAttendanceWithoutTokenAsync(CancellationToken cancellationToken);
+        Task<List<AttendanceRecord>> GetOnlyTodayAttendanceSummary(DateTime startDate, DateTime endDate, CancellationToken cancellationToken);
+        Task<List<AttendanceRecord>> GetOnlyWeekAttendanceSummary(DateTime startDate, DateTime endDate, CancellationToken cancellationToken);
+        Task<List<AttendanceRecord>> GetOnlyMonthAttendanceSummary(DateTime startDate, DateTime endDate, CancellationToken cancellationToken);
      
         
     }

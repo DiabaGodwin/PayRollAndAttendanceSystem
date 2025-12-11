@@ -1,6 +1,5 @@
 using Mapster;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Dto.Employee;
@@ -15,7 +14,9 @@ public class EmployeeService(
     IEmployeeRepository employeeRepository,
     ILogger<EmployeeService> logger,
     IAuditTrailRepo auditTrailRepo,
-    ICurrentUserService currentUserService)
+    ICurrentUserService currentUserService, 
+    IDepartmentRepository departmentRepository,
+    IUnitOfWork unitOfWork)
     : IEmployeeService
 {
     private (bool Success, string Message) ValidateDateOfBirth(DateTime? dob)
@@ -39,13 +40,14 @@ public class EmployeeService(
     }
 
     
-    public async Task<ApiResponse<int>> AddEmployeeAsync(AddEmployeeDto addEmployeeDto, CancellationToken token)
+    public async Task<ApiResponse<EmployeeResponseDto>> AddEmployeeAsync(AddEmployeeDto addEmployeeDto,
+        CancellationToken token)
     {
-        logger.LogInformation("Adding new employee");
-
-        if (!Enum.TryParse<EmploymentType>(addEmployeeDto.EmploymentType, true, out _))
+        try
         {
-            return new ApiResponse<int>
+            if (!Enum.TryParse<EmploymentType>(addEmployeeDto.EmploymentType, true, out _))
+        {
+            return new ApiResponse<EmployeeResponseDto>
             {
                 Message = $"Invalid employment type {addEmployeeDto.EmploymentType}.Allowed values: {string.Join(", ", Enum.GetNames(typeof(EmploymentType)))}",
                 StatusCode = StatusCodes.Status400BadRequest
@@ -55,7 +57,7 @@ public class EmployeeService(
         if (!Enum.TryParse<PayFrequency>(addEmployeeDto.PayFrequency, true, out _))
 
         {
-            return new ApiResponse<int>
+            return new ApiResponse<EmployeeResponseDto>
             {
                 Message =
                     $"Invalid pay frequency {addEmployeeDto.PayFrequency}. Allowed values: {string.Join(", ", Enum.GetNames(typeof(PayFrequency)))}",
@@ -67,7 +69,7 @@ public class EmployeeService(
         var emailExists = await employeeRepository.EmailExistsAsync(addEmployeeDto.Email, token);
         if (emailExists)
         {
-            return new ApiResponse<int>()
+            return new ApiResponse<EmployeeResponseDto>()
             {
                 Message = $"Email '{addEmployeeDto.Email}' already exist",
                 StatusCode = StatusCodes.Status400BadRequest
@@ -77,7 +79,7 @@ public class EmployeeService(
         var dobCheck = ValidateDateOfBirth(addEmployeeDto.DateOfBirth);
         if (!dobCheck.Success)
         {
-            return new ApiResponse<int>()
+            return new ApiResponse<EmployeeResponseDto>()
             {
                 Message = dobCheck.Message,
                 StatusCode = StatusCodes.Status400BadRequest
@@ -100,31 +102,70 @@ public class EmployeeService(
             JobPosition = addEmployeeDto.JobPosition,
             PayFrequency = addEmployeeDto.PayFrequency,
         };
-        var addedEmployee = await employeeRepository.AddEmployeeAsync(employee, token);
-        if (addedEmployee < 1)
-        {
-            return new ApiResponse<int>
-            {
-                Message = "Failed to create employee",
-                Data = 0,
-                StatusCode = StatusCodes.Status500InternalServerError
-            };
-        }
+        await unitOfWork.BeginTransactionAsync(token);
+        var addedEmployeeId = await employeeRepository.AddEmployeeAsync(employee, token);
         
-        await auditTrailRepo.SaveAuditTrail(new AuditTrail()
+        
+        var res = await auditTrailRepo.SaveAuditTrail(new AuditTrail()
         {
+            Action = "AddEmployee",
+            Descriptions = "New employee added",
+            CreatedAt = DateTime.UtcNow,
             CreatedBy = currentUserService.UserId
-            
         }, token);
+
+        if (addedEmployeeId < 0 && res < 0)
+        {
+            await unitOfWork.RollbackAsync(token);
+        }
+        var department = await departmentRepository.GetDepartmentByIdAsync(addEmployeeDto.DepartmentId, token);
         
-
-
-        return new ApiResponse<int>()
+        await unitOfWork.CommitAsync(token);
+        
+        return new ApiResponse<EmployeeResponseDto>()
         {
             StatusCode = StatusCodes.Status200OK,
             Message = "Successfully added employee",
+            Data =  new EmployeeResponseDto()
+            {
+                DepartmentId = addEmployeeDto.DepartmentId,
+                DepartmentName = department?.Name ?? "Uknown",
+                Id = addEmployeeDto.Id,
+                Title = addEmployeeDto.Title,
+                FirstName = addEmployeeDto.FirstName,
+                Surname = addEmployeeDto.Surname,
+                OtherName = addEmployeeDto.OtherName,
+                Email = addEmployeeDto.Email,
+                PhoneNumber = addEmployeeDto.PhoneNumber,
+                FullName = addEmployeeDto.Title + addEmployeeDto.FirstName + "" + addEmployeeDto.Surname+ "" + addEmployeeDto.OtherName,
+                DateOfBirth = addEmployeeDto.DateOfBirth,
+                Address = addEmployeeDto.Address,
+                Salary = addEmployeeDto.Salary,
+                PayFrequency = addEmployeeDto.PayFrequency,
+                EmploymentType = addEmployeeDto.EmploymentType,
+                EmploymentStatus = addEmployeeDto.EmploymentStatus,
+                ReportingManager = addEmployeeDto.ReportingManager,
+                JobPosition = addEmployeeDto.JobPosition,
+                HireDate = addEmployeeDto.HireDate,
+                
+            }
 
         };
+
+        }
+        catch (System.Exception e)
+        {
+            await unitOfWork.RollbackAsync(token);
+            return new ApiResponse<EmployeeResponseDto>
+            {
+                Message = "Failed to create employee",
+                Data = null,
+                StatusCode = StatusCodes.Status500InternalServerError
+            };
+            
+        }
+        
+        
     }
 
     public async Task<ApiResponse<List<EmployeeResponseDto>>> GetAllEmployeesAsync(PaginationRequest request,

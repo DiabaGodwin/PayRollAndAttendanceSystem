@@ -29,7 +29,8 @@ namespace Payroll.Attendance.Infrastructure.Repositories
             if (!string.IsNullOrEmpty(request.SearchText))
                 query = query.Where(x => 
                     x.Employee.FirstName.Contains(request.SearchText) ||
-                    x.Employee.Surname.Contains(request.SearchText)
+                    x.Employee.Surname.Contains(request.SearchText) 
+                    
                 );
             if (request.StartDate.HasValue && request.EndDate.HasValue)
             {
