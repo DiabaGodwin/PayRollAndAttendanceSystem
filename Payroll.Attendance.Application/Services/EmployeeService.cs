@@ -1,5 +1,6 @@
 using Mapster;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Dto.Employee;
@@ -10,7 +11,11 @@ using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Application.Services;
 
-public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<EmployeeService> logger)
+public class EmployeeService(
+    IEmployeeRepository employeeRepository,
+    ILogger<EmployeeService> logger,
+    IAuditTrailRepo auditTrailRepo,
+    ICurrentUserService currentUserService)
     : IEmployeeService
 {
     private (bool Success, string Message) ValidateDateOfBirth(DateTime? dob)
@@ -78,13 +83,6 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
                 StatusCode = StatusCodes.Status400BadRequest
             };
         }
-        
-        
-   
- 
-
-
-
         var employee = new Employee
         {
             Title = addEmployeeDto.Title,
@@ -112,6 +110,14 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
                 StatusCode = StatusCodes.Status500InternalServerError
             };
         }
+        
+        await auditTrailRepo.SaveAuditTrail(new AuditTrail()
+        {
+            CreatedBy = currentUserService.UserId
+            
+        }, token);
+        
+
 
         return new ApiResponse<int>()
         {
@@ -159,13 +165,25 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
         var  result = await employeeRepository.UpdateEmployeeAsync(id,request, cancellationToken);
         if (result)
         {
+            var auditTrail = new AuditTrail
+            {
+                Action = "EmployeeUpdated",
+                Descriptions = $"Employee with ID {id} was updated.",
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = currentUserService.UserId,
+            };
+            await auditTrailRepo.SaveAuditTrail(auditTrail, cancellationToken);
+        
             return new ApiResponse<bool>()
             {
                 Message = "Your request was successfully updated",
                 StatusCode = StatusCodes.Status200OK,
                 Data = result
             };
+
+            
         }
+        
         return new ApiResponse<bool>()
         {
             Message = "Your request failed",
@@ -193,8 +211,6 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
 
 
     }
-
-
 
     public async Task<ApiResponse<List<EmployeeIdAndNameDto>>> GetEmployeeIdAndName(string? searchText,
         CancellationToken cancellationToken)
@@ -224,9 +240,6 @@ public class EmployeeService(IEmployeeRepository employeeRepository, ILogger<Emp
             Data = result
         };
     }
-
-
-
 
     public async Task<ApiResponse<EmployeeSummaryDto>> GetEmployeeSummaryAsync(CancellationToken cancellationToken)
     {

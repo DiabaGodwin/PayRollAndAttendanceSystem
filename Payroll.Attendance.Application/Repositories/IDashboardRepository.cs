@@ -14,6 +14,9 @@ public interface IDashboardRepository
     Task<List<Reminder>> GetPendingRemindersAsync(CancellationToken cancellatioToken);
     Task<Reminder> AddReminderAsync(Reminder reminder, CancellationToken  cancellationToken );
     Task<bool> DeleteReminderAsync(int id, CancellationToken cancellationToken);
+    Task<List<AttendanceRecord>> GetAllSummaryAsync(CancellationToken cancellationToken);
+    Task<List<PayrollRecord>> GetAllPayrollAsync(CancellationToken cancellationToken);
+    Task<List<Department>> GetAllDepartmentsAsync(CancellationToken cancellationToken);
     
     
 }

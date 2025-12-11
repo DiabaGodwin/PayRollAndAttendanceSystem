@@ -49,7 +49,6 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
 
     public async Task<int> CheckIn(AttendanceRecord record, CancellationToken cancellationToken)
     {
-        var existing = dbContext.Attendances.FirstOrDefault(x => x.EmployeeId == record.Id && x.Date.Date == DateTime.Today);
         var result = await dbContext.Attendances.AddAsync(record, cancellationToken);
         var res = await dbContext.SaveChangesAsync(cancellationToken);
         return record.Id;
@@ -82,7 +81,7 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
         CancellationToken cancellationToken)
     {
         return await dbContext.Attendances
-            .Where(a => a.Date.Date >= date.Date && a.EmployeeId == employeeId)
+            .Where(a => a.Date.Date == date.Date && a.EmployeeId == employeeId)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -102,11 +101,40 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
     public async Task<int> UpdateBulkAttendanceAsync(AttendanceRecord record, CancellationToken cancellationToken)
     {
          dbContext.Attendances.Update(record);
-         var existing = dbContext.Attendances.FirstOrDefault(x => x.EmployeeId == record.Id && x.Date.Date == DateTime.Today);
-         await dbContext.Attendances.OrderByDescending(x=>x.Date).ThenByDescending(x=>x.CheckIn).ToListAsync();
          return await dbContext.SaveChangesAsync(cancellationToken);
-        
     }
+    
+    public async Task<int> UpdateAttendanceAsync(AttendanceRecord updatedRecord, CancellationToken ct)
+    {
+        var existing = await dbContext.Attendances
+            .FirstOrDefaultAsync(a => a.Id == updatedRecord.Id, ct);
+
+        if (existing == null)
+            return 0;
+
+        // ✔️ Prevent overriding an already existing CheckIn
+        if (updatedRecord.CheckIn != null && existing.CheckIn == null)
+        {
+            existing.CheckIn = updatedRecord.CheckIn;
+        }
+
+        // ✔️ Prevent overriding an already existing CheckOut
+        if (updatedRecord.CheckOut != null && existing.CheckOut == null)
+        {
+            existing.CheckOut = updatedRecord.CheckOut;
+        }
+
+        // ✔️ Update late only if check-in is newly added
+        if (existing.CheckIn != null && updatedRecord.IsLate != existing.IsLate)
+        {
+            existing.IsLate = updatedRecord.IsLate;
+        }
+
+        existing.UpdatedAt = DateTime.UtcNow;
+
+        return await dbContext.SaveChangesAsync(ct);
+    }
+
 
    
 
@@ -129,11 +157,7 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
         return result;
     }
 
-    public async Task<List<Activity>> GetRecentActivitiesAsync(int count, CancellationToken cancellationToken)
-    {
-        return await  dbContext.Activities.OrderByDescending(x=>x.CreatedAt).Take(count)
-            .ToListAsync(cancellationToken);
-    }
+  
 
     public async Task<bool> ClockInAsync(int employeeId, DateTime now, CancellationToken cancellationToken)
     {

@@ -1,5 +1,6 @@
 using Mapster;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Payroll.Attendance.Application.Dto;
 using Payroll.Attendance.Application.Dto.DashBoard;
 using Payroll.Attendance.Application.Repositories;
@@ -109,7 +110,7 @@ public class DashboardService(IDashboardRepository dashboardRepository, IEmploye
     }
 
     public async Task<ApiResponse<FullDashboardResponseDto>> GetFullDashboardAsync(CancellationToken cancellationToken)
-    {
+    { 
         var summary = await GetDashboardSummaryAsync(cancellationToken);
         var reminders = await dashboardRepository.GetPendingRemindersAsync(cancellationToken);
         var department = await dashboardRepository.GetDepartmentDistributionsAsync(cancellationToken);
@@ -145,4 +146,58 @@ public class DashboardService(IDashboardRepository dashboardRepository, IEmploye
             Data = response
         };
     }
+
+    public async Task<ApiResponse<List<ActivityDto>>> GetActivityAsync(CancellationToken cancellationToken)
+    {
+        var employees =
+            await employeeRepository.GetAllEmployeesAsync(new PaginationRequest { PageNumber = 1, PageSize = 10000 },
+                cancellationToken);
+        var employeeLookup = employees
+            .GroupBy(x => x.EmployeeId)
+            .ToDictionary(f => f.Key, f => $"{f.First().Title} {f.First().FirstName} {f.First().Surname}");
+
+
+        List<ActivityDto> activities = new();
+
+        var attendance = await dashboardRepository.GetAllSummaryAsync(cancellationToken);
+        activities.AddRange(attendance.Select(x=> new ActivityDto
+        {
+            RecordId = x.Id,
+            Module = "Attendance",
+            Action = x.CheckOut != null ? "Check out" : "Check In",
+            Description = $"{employeeLookup.GetValueOrDefault(x.EmployeeId)} {(x.CheckOut != null ? "check out" : "Check In")}",
+            EmployeeName = employeeLookup.GetValueOrDefault(0),
+            Timestamp = x.UpdatedAt ?? x.CreatedAt
+        }));
+        
+        var payrolls = await dashboardRepository.GetAllPayrollAsync(cancellationToken);
+        activities.AddRange(payrolls.Select(x=> new ActivityDto
+        {
+          RecordId  = x.Id,
+          Module = "Payroll",
+          Action = "Payroll Processed",
+          Description = $"Payroll Processed for {employeeLookup.GetValueOrDefault(x.EmployeeId)}",
+          Timestamp = x.UpdatedAt 
+        }));
+
+        var departments = await dashboardRepository.GetAllDepartmentsAsync(cancellationToken);
+        activities.AddRange(departments.Select(x=>new ActivityDto
+        {
+            RecordId = x.Id,
+            Module = "Department",
+            Action = "Department Created",
+            Description = $"Department '{x.Name}' was created",
+            EmployeeName = "system", 
+            Timestamp = x.UpdatedAt ?? x.CreatedAt
+        }));
+        var result = activities.OrderByDescending(c=>c.Timestamp).Take(30).ToList();
+
+        return new ApiResponse<List<ActivityDto>>()
+        {
+            Message = "Recent Activities retrived successfully",
+            StatusCode = StatusCodes.Status200OK,
+            Data = result
+        };
+    } 
+   
 }

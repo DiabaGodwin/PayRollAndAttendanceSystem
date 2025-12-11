@@ -89,11 +89,8 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
 
         var result = res.Adapt(new AttendanceResponseDto());
 
-        if (res.Employee != null)
-        {
-            result.FirstName = res.Employee.FirstName;
-            result.Surname = res.Employee.Surname;
-        }
+        result.FirstName = res.Employee.FirstName;
+        result.Surname = res.Employee.Surname;
 
         return new ApiResponse<AttendanceResponseDto>()
         {
@@ -289,22 +286,9 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
                ).ToList();
        return grouped;
     }
-
-    public async Task<List<Activity>> GetRecentActivityAsync(CancellationToken cancellationToken, int count = 10)
-    {
-       var records = await repository.GetAllSummaryAsync(cancellationToken);
-       var activities = records.OrderByDescending(x=>x.UpdatedAt ?? x.CreatedAt).Take(count).Select(x=>new Activity
-       {
-           EmployeeId = x.EmployeeId,
-           EmployeeName = $"{x.Employee?.Title} {x.Employee?.FirstName} {x.Employee?.Surname},",
-           Timestamp = x.UpdatedAt ?? x.CreatedAt,
-           Action = x.CheckOut != null ? "Cheked Out" : "Checked In",
-           Status = x.IsLate ? "Late" : "On Time"
-       }).ToList();
-       return activities;
-    }
+//Recent Activity
     
-
+//Bulk Attendance
     public async Task<ApiResponse<BulkAttendanceResponseDto>> BulkAttendanceAsync(BulkAttendanceRequestDto request,
         CancellationToken cancellationToken)
     {
@@ -325,25 +309,26 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
 
         foreach (var record in request.Records)
         {
+
+            var data = new AttendanceRecord()
+            {
+                EmployeeId = record.EmployeeId,
+                Date = request.Date.Date,
+                CheckIn = record.CheckInTime.HasValue ? request.Date.Date + record.CheckInTime.Value.TimeOfDay : null,
+                CheckOut = record.CheckOutTime.HasValue ? request.Date.Date + record.CheckOutTime.Value.TimeOfDay : null,
+                IsLate = record.CheckInTime > DateTime.Today.Date.AddHours(8),
+                CreatedAt = DateTime.UtcNow,
+            };
             try
             {
                 //Checking if the attendance record exist
                 var existingRecord =
-                    await repository.CheckIfAttendanceExistAsync(record.EmployeeId, request.Date, cancellationToken);
+                    await repository.CheckIfAttendanceExistAsync(data.EmployeeId, request.Date, cancellationToken);
                 //Adding new records
                 if (existingRecord == null)
                 {
-                    var attendanceRecord = new AttendanceRecord()
-                    {
-                        EmployeeId = record.EmployeeId,
-                        Date = request.Date,
-                        CheckIn = record.CheckInTime,
-                        CheckOut = record.CheckOutTime,
-                        IsLate = record.CheckInTime > DateTime.Today.Date.AddHours(8),
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
-                    };
-                    var response = await repository.CheckIn(attendanceRecord, cancellationToken);
+                    
+                    var response = await repository.CheckIn(data, cancellationToken);
                     if (response > 0)
                     {
                         result.Successful++;
@@ -354,70 +339,20 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
                         errors.Add(($"Failed to update attendance for employee {record.EmployeeId}"));
                     }
                 }
-                //preventing double checkin
-                if (existingRecord.CheckIn != null)
-                {
-                    result.Failed++;
-                    errors.Add($"Employee {record.EmployeeId} already checked in on {request.Date.Date}");
-                    continue;
-                }
-                
-                //Preventing double checkout
 
-                if (
-                    existingRecord.CheckOut != null)
+                if (existingRecord != null)
                 {
-                    result.Failed++;
-                    errors.Add($"Employee {record.EmployeeId} already checked out on {request.Date.Date}");
-                    continue;
-                }
-                //updating attendance records
-                
-                bool updated = false;
-                //Updade checkin
-
-                if (existingRecord.CheckIn.HasValue && existingRecord.CheckOut.HasValue)
-                {
-                    if (record.CheckInTime.HasValue)
+                    var update = await repository.UpdateAttendanceAsync(existingRecord, cancellationToken);
+                    if (update > 0)
                     {
-                        existingRecord.CheckIn = record.CheckInTime.Value;
-                        existingRecord.IsLate = existingRecord.CheckIn.Value.TimeOfDay > new TimeSpan(8, 0, 0);
+                        result.Successful++;
+                    }
+                    else
+                    {
+                        result.Failed++;
+                        errors.Add(($"Failed to update attendance for employee {record.EmployeeId}"));
                     }
                 }
-                //Update CheckOut
-
-                if (record.CheckOutTime.HasValue)
-                {
-                    if (existingRecord != null) 
-                        existingRecord.CheckOut = record.CheckOutTime.Value;
-                    updated = true;
-                }
-                
-                 //Update save
-                if (updated)
-                {
-                    if (existingRecord != null)
-                    {
-                        existingRecord.UpdatedAt = DateTime.UtcNow;
-                        var data = await repository.UpdateBulkAttendanceAsync(existingRecord, cancellationToken);
-
-                        if (data > 0)
-                        {
-                            result.Successful++;
-                        }
-                        else
-                        {
-                            result.Failed++;
-                            errors.Add(($"Failed to update attendance for employee {record.EmployeeId}"));  
-                        }
-                    }
-                }
-                else
-                {
-                    result.Successful++;
-                }
-                
-               
             }
             
             catch (System.Exception e)

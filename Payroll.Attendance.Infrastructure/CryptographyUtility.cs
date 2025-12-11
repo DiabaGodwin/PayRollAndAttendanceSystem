@@ -56,7 +56,8 @@ public class CryptographyUtility : ICryptographyUtility
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Email, user.Email),
-                    new Claim("UserData", userModel)
+                    new Claim("UserData", userModel),
+                    new Claim("custom:userId", user.UserId.ToString()),
                 }),
                 Issuer =_jwtSettings.Issuer,
                 Audience = _jwtSettings.Audience,
