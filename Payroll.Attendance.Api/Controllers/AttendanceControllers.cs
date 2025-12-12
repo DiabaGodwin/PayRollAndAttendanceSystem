@@ -65,9 +65,9 @@ public class AttendanceController(IAttendanceService service) : ControllerBase
     }
     
     [HttpGet("summary")]
-    public async Task<IActionResult> GetSummary(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetALlSummary(CancellationToken cancellationToken)
     {
-        var result = await service.GetSummaryAsync(cancellationToken);
+        var result = await service.GetAllSummaryAsync(cancellationToken);
         return StatusCode(result.StatusCode, result);
     }
 

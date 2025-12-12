@@ -4,6 +4,7 @@ namespace Payroll.Attendance.Application.Dto.AttendanceRecord
     {
         public int TotalEmployees { get; set; }
         public TodaySummaryDto Today { get; set; } = new();
+        public WeekSummaryDto Weekly { get; set; } = new();
         public MonthSummaryDto Month { get; set; } = new();
         public AllTimeSummaryDto AllTime { get; set; } = new();
     }
@@ -15,6 +16,15 @@ namespace Payroll.Attendance.Application.Dto.AttendanceRecord
         public int LateArrivals { get; set; }
         public int OnLeave { get; set; }
         public double AttendancePercentage { get; set; }
+    }
+
+    public class WeekSummaryDto
+    {
+        public int PresentWeek { get; set; }
+        public int AbsentWeek { get; set; }
+        public int WeekLateArrivals { get; set; }
+        public int WeekOnLeave { get; set; }
+        public double WeeklyAttendancePercentage { get; set; }
     }
 
     public class MonthSummaryDto

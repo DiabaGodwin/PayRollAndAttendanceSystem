@@ -87,6 +87,7 @@ public class AuthService(
                 };
             }
             var userModel = user.Adapt(new UserModel());
+            userModel.UserId = user.Id;
             
             var token = cryptoUtility.GenerateToken(userModel);
 

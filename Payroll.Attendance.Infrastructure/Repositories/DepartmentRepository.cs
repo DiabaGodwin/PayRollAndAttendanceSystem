@@ -48,7 +48,7 @@ public class DepartmentRepository(ApplicationDbContext context, ILogger<Departme
         => await context.Departments.AsNoTracking().ToListAsync(cancellationToken);
 
     public async Task<Department?> GetDepartmentByIdAsync(int id,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken )
     {
         return await context.Departments.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
@@ -81,15 +81,7 @@ public class DepartmentRepository(ApplicationDbContext context, ILogger<Departme
         }
     }
 
-    public Task<bool> DeleteDepartmentAsync(Expression<Func<Department, bool>> id, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<bool> DepartmentExistsAsync(Expression<Func<Department, bool>> id, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    
 
     public async Task<bool> DeleteDepartmentAsync(int id, CancellationToken cancellationToken)
     {

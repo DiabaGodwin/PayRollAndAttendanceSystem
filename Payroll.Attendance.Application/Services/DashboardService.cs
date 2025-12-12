@@ -8,7 +8,7 @@ using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Application.Services;
 
-public class DashboardService(IDashboardRepository dashboardRepository, IEmployeeRepository employeeRepository) : IDashboardService
+public class DashboardService(IDashboardRepository dashboardRepository, IEmployeeRepository employeeRepository, IAuditTrailRepo auditTrailRepo) : IDashboardService
 
 {
     public async Task<ApiResponse<DashBoardSummaryDto>> GetDashboardSummaryAsync(CancellationToken cancellationToken)
@@ -21,6 +21,12 @@ public class DashboardService(IDashboardRepository dashboardRepository, IEmploye
             AttendanceRate = await dashboardRepository.GetpresentCountAsync(cancellationToken)
             
         };
+        var audit = new AuditTrail
+        {
+            Action = "Dashboard summary viewed",
+            Descriptions = $"Dashboard summary viewed by {employeesResult.Count} employees",
+        };
+        
         return new ApiResponse<DashBoardSummaryDto>()
         {
             Message = "Dashboard Summary retrieved successfully",

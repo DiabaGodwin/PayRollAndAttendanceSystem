@@ -10,7 +10,12 @@ public class EmployeeResponseDto
     public string FirstName { get; set; } = null!;
     public string Surname { get; set; } = null!;
     public string? OtherName { get; set; }
-    public string FullName => $"{Title} {FirstName}  {Surname}  {OtherName}"; 
+    public string FullName
+    {
+        get => $"{Title} {FirstName}  {Surname}  {OtherName}";
+        set { }
+    }
+
     [EmailAddress]
     public string Email { get; set; } = null!;
     public string PhoneNumber { get; set; } = null!;
@@ -22,6 +27,8 @@ public class EmployeeResponseDto
     public string? EmploymentType { get; set; } 
     public string? ReportingManager { get; set; }
     public string? Salary { get; set; }
+    public string DepartmentName { get; set; } = null!;
+    public int DepartmentId { get; set; }
     public string PayFrequency { get; set; } = null!;
     public string? EmploymentStatus  { get; set; } 
    

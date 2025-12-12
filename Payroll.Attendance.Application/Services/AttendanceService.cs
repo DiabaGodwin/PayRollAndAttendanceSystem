@@ -154,7 +154,7 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
         };
     }
 
-    public async Task<ApiResponse<AttendanceSummaryDto>> GetSummaryAsync(CancellationToken cancellationToken)
+    public async Task<ApiResponse<AttendanceSummaryDto>> GetAllSummaryAsync( CancellationToken cancellationToken)
           {
        var employees = await employeeRepository.GetAllEmployeesAsync(new PaginationRequest{PageNumber = 1, PageSize = 1000}, cancellationToken);
        var currentEmployeeeIds = employees.Select(e => e.Id).ToHashSet();
@@ -165,11 +165,11 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
       
         
         var today = DateTime.UtcNow.Date;
-        var tomorrow = today.AddDays(1);
         var lateThreshhold = new TimeSpan(8, 0, 0);
         
         
         var allRecords = await repository.GetAllSummaryAsync(cancellationToken);
+        
         var currentEmployeeRecords = allRecords.Where(e=>currentEmployeeeIds.Contains(e.EmployeeId)).ToList();
        
         //Daily Today's Summary
@@ -183,6 +183,25 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
             : Math.Round(((double)presentToday / totalEmployees) * 100, 1);
 
         var employeeIds = allRecords.Select(r => r.EmployeeId).Distinct().ToHashSet();
+        
+        //WEEKLY SUMMARY
+        var startOfWeek = today.AddDays(-(int)today.DayOfWeek + (int)DayOfWeek.Monday);
+        var endOfWeek = startOfWeek.AddDays(6);
+        var weekRecords = currentEmployeeRecords.Where(v=>v.Date >= startOfWeek.Date && v.Date <= endOfWeek).ToList();
+        var workingDaysWeek = weekRecords.Select(v=>v.Date.Date).Distinct().Count();
+        var weekGroups = weekRecords.GroupBy(v=> new {v.EmployeeId, v.Date.Date}).Select(f=>new
+        {
+            EmployeeId = f.Key.EmployeeId,
+            Day = f.Key.Date,
+            Status = f.OrderByDescending(f=>f.Date).First().Status,
+        }).ToList();
+        var overallPresentWeek = weekGroups.Count(r => r.Status == AttendanceStatus.Present);
+        var overallLeaveWeek = weekGroups.Count(r => r.Status == AttendanceStatus.Leave);
+        var overallExpectedWeek = totalEmployees * workingDaysWeek;
+        var overallAbsentWeek = overallExpectedWeek - (overallLeaveWeek+ overallPresentWeek);
+        if(overallAbsentWeek < 0) overallAbsentWeek = 0;
+        double averageAttendancePercentageWeek = overallExpectedWeek == 0 ? 0
+            : Math.Round(((double)overallPresentWeek / overallExpectedWeek) * 100, 1);
         
         //MONTH SUMMARY
         var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
@@ -226,6 +245,14 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
                     LateArrivals = lateArrivals,
                     OnLeave = onLeaveToday,
                     AttendancePercentage = attendancePercentage
+                },
+                Weekly = new WeekSummaryDto()
+                {
+                   PresentWeek = overallPresentWeek,
+                   AbsentWeek = overallAbsentWeek,
+                   WeekLateArrivals = overallLeaveWeek,
+                   WeekOnLeave = overallLeaveWeek,
+                   WeeklyAttendancePercentage = averageAttendancePercentageWeek
                 },
                 Month = new MonthSummaryDto()
                 {
@@ -419,5 +446,60 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
             StatusCode = StatusCodes.Status200OK,
             Data = response
         };
+    }
+
+    public async Task<ApiResponse<TodayAttendanceSummaryDto>>GetOnlyTodayAttendanceSummaryAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
+    {
+        var employees = await employeeRepository.GetAllEmployeesAsync(new PaginationRequest{PageNumber = 1, PageSize = 1000}, cancellationToken);
+        var currentEmployeeeIds = employees.Select(e => e.Id).ToHashSet();
+       
+        var totalEmployees =  currentEmployeeeIds.Count;
+         var today = startDate.Date;
+         var lateThreshold = new TimeSpan(8, 0, 0);
+
+         var allRecords = await repository.GetOnlyTodayAttendanceSummary(startDate, endDate, cancellationToken);
+         var currentEmployeeRecords = allRecords.Where(r => currentEmployeeeIds.Contains(r.Id)).ToList();
+         var  recordsToday = currentEmployeeRecords.Where(r => r.Date.Date == today.Date).ToList();
+         var presentToday = recordsToday.Where(e => e.CheckIn.HasValue).Select(e => e.Employee).Distinct().Count();
+         var lateArrivals = recordsToday.Where(e => e.CheckIn.HasValue && e.CheckIn.Value.TimeOfDay > lateThreshold)
+             .Select(e => e.Employee).Distinct().Count();
+         var onLeaveToday = recordsToday.Where(x=>x.IsOnLeave).Select(x => x.Employee).Distinct().Count();
+         var absentToday = totalEmployees - (presentToday + onLeaveToday);
+         
+         if(absentToday < 0) absentToday = 0;
+         double attendancePercentage = totalEmployees == 0 ? 0
+             : Math.Round((double)absentToday / totalEmployees * 100, 1);
+
+         var todaySummary = new TodayAttendanceSummaryDto()
+         {
+             TotalEmployee = totalEmployees,
+             PresentToday = presentToday,
+             AbsentToday = absentToday,
+             LateArrivals = lateArrivals,
+             OnLeave = onLeaveToday,
+             AttendancePercentage = attendancePercentage
+         };
+         return new ApiResponse<TodayAttendanceSummaryDto>()
+         {
+             Message = "Today attendance retrieved successfully",
+             StatusCode = StatusCodes.Status200OK,
+             Data = todaySummary
+         };
+
+
+
+
+    }
+
+    public async Task<ApiResponse<WeekAttendanceSummaryDto>> GetOnlyWeekAttendanceSummaryAsync(DateTime startDate,
+        DateTime endDate, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<ApiResponse<MonthAttendanceSummaryDto>> GetOnlyMonthAttendanceSummaryAsync(DateTime startDate,
+        DateTime endDate, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }

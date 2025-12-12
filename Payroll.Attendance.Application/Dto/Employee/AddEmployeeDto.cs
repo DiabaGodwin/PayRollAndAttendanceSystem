@@ -4,6 +4,7 @@ namespace Payroll.Attendance.Application.Dto.Employee;
 
 public class AddEmployeeDto
 { 
+    public int Id { get; set; }
    
     [Required]
     public string Title { get; set; } = null!;
@@ -36,6 +37,8 @@ public class AddEmployeeDto
     [Range(0, double.MaxValue)]
     public string? Salary { get; set; }
     public string? PayFrequency { get; set; }
+    public  string? EmploymentStatus { get; set; }
+    public string? ReportingManager { get; set; }
   
 
 }

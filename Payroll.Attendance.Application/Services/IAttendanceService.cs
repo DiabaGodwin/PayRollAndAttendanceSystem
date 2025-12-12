@@ -12,7 +12,8 @@ public interface IAttendanceService
 
     Task<ApiResponse<int>> DeleteAsync(int id, CancellationToken cancellationToken);
     
-    Task<ApiResponse<AttendanceSummaryDto>> GetSummaryAsync(CancellationToken cancellationToken);
+    Task<ApiResponse<AttendanceSummaryDto>> GetAllSummaryAsync(
+        CancellationToken cancellationToken);
     Task<decimal> GetOverallAttendanceRateAsync(CancellationToken cancellationToken);
     Task<List<DepartmentAttendance>> GetDepartmentAttendanceAsync(CancellationToken cancellationToken);
  
@@ -20,4 +21,10 @@ public interface IAttendanceService
         CancellationToken cancellationToken);
     Task<ApiResponse<List<AttendanceResponseDto>>> GetTodayAttendanceAsync( CancellationToken cancellationToken);
     Task<ApiResponse<List<TodayAttendanceDto>>> GetTodayAttendanceWithoutTokenAsync(CancellationToken cancellationToken);
+    Task<ApiResponse<TodayAttendanceSummaryDto>> GetOnlyTodayAttendanceSummaryAsync(DateTime startDate,
+        DateTime endDate, CancellationToken cancellationToken);
+    Task<ApiResponse<WeekAttendanceSummaryDto>> GetOnlyWeekAttendanceSummaryAsync(DateTime startDate,
+        DateTime endDate, CancellationToken cancellationToken);
+    Task<ApiResponse<MonthAttendanceSummaryDto>> GetOnlyMonthAttendanceSummaryAsync(DateTime startDate,
+        DateTime endDate, CancellationToken cancellationToken);
 } 

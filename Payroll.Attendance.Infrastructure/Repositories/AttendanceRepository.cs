@@ -85,10 +85,8 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<List<AttendanceRecord>> GetAllSummaryAsync(CancellationToken cancellationToken)
+    public async Task<List<AttendanceRecord>> GetAllSummaryAsync( CancellationToken cancellationToken)
     {
-        var totalEmployees = await dbContext.Employees.Select(e => e.Id).Distinct().CountAsync(cancellationToken);
-        var employeeIds =  dbContext.Employees.Select(e=>e.Id).ToHashSet();
         return await dbContext.Attendances.Include(x => x.Employee).ToListAsync(cancellationToken);
         
     }
@@ -206,5 +204,34 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
         var today = DateTime.UtcNow.Date;
         return await dbContext.Attendances.Include(x => x.Employee)
             .Where(x => x.Date.Date >= today.Date && x.CheckIn != null).ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<AttendanceRecord>> GetOnlyTodayAttendanceSummary(DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
+    {
+        var today = DateTime.UtcNow.Date;
+        var query = dbContext.Attendances.Include(x => x.Employee)
+            .Where(d => d.Date.Date == today).AsQueryable();
+        
+        //Applying date range filter
+        if (startDate != default && endDate != default)
+        {
+            var start = startDate.Date;
+            var end = endDate.Date;
+            query = query.Where(d=>d.Date.Date >= start && d.Date.Date <= end);
+        }
+        return await query.ToListAsync(cancellationToken);
+        
+    }
+
+    public async Task<List<AttendanceRecord>> GetOnlyWeekAttendanceSummary(DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
+    {
+        return await dbContext.Attendances.Include(x => x.Employee)
+            .Where(x=>x.Date.Date >= startDate.Date && x.Date.Date <= endDate.Date).ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<AttendanceRecord>> GetOnlyMonthAttendanceSummary(DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
+    {
+        return await dbContext.Attendances.Include(x => x.Employee)
+            .Where(x=>x.Date.Date >= startDate.Date && x.Date.Date <= endDate.Date).ToListAsync(cancellationToken);
     }
 }
