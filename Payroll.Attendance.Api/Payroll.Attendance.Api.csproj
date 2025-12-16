@@ -7,8 +7,17 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="FluentEmail.Core" Version="3.0.2" />
+        <PackageReference Include="FluentEmail.Smtp" Version="3.0.2" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.3" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.12"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.20"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Payroll.Attendance.Application\Payroll.Attendance.Application.csproj" />
+      <ProjectReference Include="..\Payroll.Attendance.Infrastructure\Payroll.Attendance.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>
