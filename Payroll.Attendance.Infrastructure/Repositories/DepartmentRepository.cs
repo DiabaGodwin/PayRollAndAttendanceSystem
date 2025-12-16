@@ -18,7 +18,7 @@ public class DepartmentRepository(ApplicationDbContext context, ILogger<Departme
 
     public async Task<List<Department>> GetAllDepartmentsAsync(PaginationRequest request, CancellationToken cancellationToken = default)
     {
-        var query =  context.Departments.AsQueryable();
+        var query =  context.Departments.Include(x=>x.Employees).AsQueryable();
         if (!string.IsNullOrEmpty(request.SearchText))
         {
             query= query.Where(x=>
@@ -50,7 +50,7 @@ public class DepartmentRepository(ApplicationDbContext context, ILogger<Departme
     public async Task<Department?> GetDepartmentByIdAsync(int id,
         CancellationToken cancellationToken )
     {
-        return await context.Departments.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        return await context.Departments.Include(x=>x.Employees).FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task<Department?> GetDepartmentByNameAsync(string name, CancellationToken cancellationToken = default)

@@ -16,5 +16,6 @@ public class AttendanceResponseDto
     public TimeSpan? TotalHours { get; set; }
     public bool IsLate { get; set; }
     public bool LeftEarly { get; set; }
+    public bool IsOnLeave { get; set; }
    
 }

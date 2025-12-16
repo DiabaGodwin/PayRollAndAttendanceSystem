@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Payroll.Attendance.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using Payroll.Attendance.Infrastructure.Data;
 namespace Payroll.Attendance.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251213001022_Table for Payroll Attendance Management")]
+    partial class TableforPayrollAttendanceManagement
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -428,7 +431,7 @@ namespace Payroll.Attendance.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValue(new DateTime(2025, 12, 15, 16, 23, 34, 52, DateTimeKind.Utc).AddTicks(9168));
+                        .HasDefaultValue(new DateTime(2025, 12, 13, 0, 10, 21, 701, DateTimeKind.Utc).AddTicks(1562));
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -444,13 +447,6 @@ namespace Payroll.Attendance.Infrastructure.Migrations
                         .HasDefaultValue(true);
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("RefreshExpires")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RefreshToken")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

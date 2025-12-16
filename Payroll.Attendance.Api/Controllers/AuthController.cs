@@ -24,6 +24,14 @@ public class AuthController(IAuthService service) : ControllerBase
         return StatusCode(result.StatusCode,result);
     }
 
+    [HttpPost("RefreshToken")]
+    public async Task<IActionResult> LoginWithRefreshToken([FromBody] LoginWithTokenRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await service.LoginWithRefreshToken(request, cancellationToken);
+        return StatusCode(result.StatusCode,result);
+    }
+
     [HttpPut("UpdateUserRequest")]
 
     public async Task<ActionResult> UpdateUserRequest([FromBody] UpdateUserRequest request,

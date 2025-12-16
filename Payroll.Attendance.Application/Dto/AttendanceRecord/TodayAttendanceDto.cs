@@ -3,6 +3,7 @@ namespace Payroll.Attendance.Application.Dto.AttendanceRecord;
 public class TodayAttendanceDto
 {
     public int EmployeeId { get; set; }
+   
     public string? Title { get; set; }
     public string? FirstName { get; set; }
     public string? Surname { get; set; }

@@ -90,11 +90,17 @@ public class AuthService(
             userModel.UserId = user.Id;
             
             var token = cryptoUtility.GenerateToken(userModel);
+            var refreshToken = cryptoUtility.GenerateRefreshToken();
+            
+            //Save refresh token and expiry to the. 
 
+            await repository.SaveRefreshToken(refreshToken.RefreshToken,refreshToken.RefreshExpires,user.Id,cancellationToken);
+            
             var response = new LoginResponse()
             {
                 User = userModel,
                 Token = token,
+                RefreshToken = refreshToken
             };
             return new ApiResponse<LoginResponse>()
             { 
@@ -118,6 +124,60 @@ public class AuthService(
     public Task<ApiResponse<int>> UpdateUserRequest(UpdateUserRequest request, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<ApiResponse<LoginResponse>> LoginWithRefreshToken(LoginWithTokenRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var user = await repository.CheckIfUserWithTokenExist(request.RefreshToken,request.UserNameOrEmail, cancellationToken);
+            if (user == null) return new ApiResponse<LoginResponse>()
+            {
+                Message = @"Wrong username or refreshToken",
+                StatusCode = StatusCodes.Status401Unauthorized,
+            };
+
+            var userModel = user.Adapt(new UserModel());
+            userModel.UserId = user.Id;
+            
+            var accessToken = cryptoUtility.GenerateToken(userModel);
+            var newRefreshToken = cryptoUtility.GenerateRefreshToken();
+            
+            //Save refresh token and expiry to the. 
+
+            var res = await repository.SaveRefreshToken(newRefreshToken.RefreshToken,newRefreshToken.RefreshExpires,user.Id, cancellationToken);
+            if (!res)
+            {
+                return new ApiResponse<LoginResponse>()
+                { 
+                    StatusCode = StatusCodes.Status200OK,
+                    Message = "Failed  to login."
+                };
+            }
+            
+            var response = new LoginResponse()
+            {
+                User = userModel,
+                Token = accessToken,
+                RefreshToken = newRefreshToken
+            };
+            return new ApiResponse<LoginResponse>()
+            { 
+                Data = response,
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Login successful."
+            };
+        }
+        catch (System.Exception)
+        {
+            logger.LogError("An error occured while trying to login user.");
+            return new ApiResponse<LoginResponse>()
+            {
+                Message = @"An error occured while trying to login user.",
+                StatusCode = StatusCodes.Status500InternalServerError,
+
+            };
+        }
     }
 
     private bool VerifyPassword(string requestPassword, string userPasswordHash)
