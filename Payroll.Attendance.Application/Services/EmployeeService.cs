@@ -41,8 +41,7 @@ public class EmployeeService(
 
     
     public async Task<ApiResponse<EmployeeResponseDto>> AddEmployeeAsync(AddEmployeeDto addEmployeeDto,
-        CancellationToken token)
-    {
+        CancellationToken token) {
         try
         {
             if (!Enum.TryParse<EmploymentType>(addEmployeeDto.EmploymentType, true, out _))
@@ -130,7 +129,6 @@ public class EmployeeService(
             {
                 DepartmentId = addEmployeeDto.DepartmentId,
                 DepartmentName = department?.Name ?? "Uknown",
-                Id = addEmployeeDto.Id,
                 Title = addEmployeeDto.Title,
                 FirstName = addEmployeeDto.FirstName,
                 Surname = addEmployeeDto.Surname,
@@ -143,10 +141,9 @@ public class EmployeeService(
                 Salary = addEmployeeDto.Salary,
                 PayFrequency = addEmployeeDto.PayFrequency,
                 EmploymentType = addEmployeeDto.EmploymentType,
-                EmploymentStatus = addEmployeeDto.EmploymentStatus,
-                ReportingManager = addEmployeeDto.ReportingManager,
                 JobPosition = addEmployeeDto.JobPosition,
                 HireDate = addEmployeeDto.HireDate,
+                
                 
             }
 

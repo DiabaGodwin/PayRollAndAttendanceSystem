@@ -71,6 +71,30 @@ public class AttendanceController(IAttendanceService service) : ControllerBase
         return StatusCode(result.StatusCode, result);
     }
 
+    [HttpGet("todaySummary")]
+    public async Task<IActionResult> GetOnlyTodayAttendanceSummary(DateTime startDate, DateTime endDate,
+        CancellationToken cancellationToken)
+    {
+        var result = await service.GetOnlyTodayAttendanceSummaryAsync(startDate, endDate, cancellationToken);
+        return StatusCode(result.StatusCode, result);
+    }
+
+    [HttpGet("weekSummary")]
+    public async Task<IActionResult> GetOnlyWeekAttendanceSummary(DateTime startDate, DateTime endDate,
+        CancellationToken cancellationToken)
+    {
+        var result = await service.GetOnlyWeekAttendanceSummaryAsync(startDate, endDate, cancellationToken);
+        return StatusCode(result.StatusCode, result);
+    }
+
+    [HttpGet("monthSummary")]
+    public async Task<IActionResult> GetOnlyMonthAttendanceSummary(DateTime startDate, DateTime endDate,
+        CancellationToken cancellationToken)
+    {
+        var result = await service.GetOnlyMonthAttendanceSummaryAsync(startDate, endDate, cancellationToken);
+        return StatusCode(result.StatusCode, result);
+    }
+
     [HttpPost("bulk")]
     public async Task<IActionResult> BulkAttendance([FromBody] BulkAttendanceRequestDto request,
         CancellationToken cancellationToken)
@@ -78,5 +102,6 @@ public class AttendanceController(IAttendanceService service) : ControllerBase
         var result = await service.BulkAttendanceAsync(request, cancellationToken);
         return StatusCode(result.StatusCode, result);
     }
+    
 
 }

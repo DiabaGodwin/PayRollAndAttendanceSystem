@@ -1,3 +1,4 @@
+using System.Transactions;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -61,42 +62,57 @@ public class DepartmentService(IDepartmentRepository departmentRepository,ILogge
     public async Task<ApiResponse<List<DepartmentResponseDto>>> GetAllDepartmentsAsync(PaginationRequest request, CancellationToken cancellationToken)
     {
         var departments = await departmentRepository.GetAllDepartmentsAsync(request, cancellationToken);
-        var data = departments.Adapt(new List<DepartmentResponseDto>());
-
-        
-        return new ApiResponse<List<DepartmentResponseDto>>
+        if (!departments.Any())
         {
-            Message = "All departments successfully",
-            StatusCode = StatusCodes.Status200OK,
-            Data = data
-        };
-
+            return new ApiResponse<List<DepartmentResponseDto>>()
+            {
+                Message = "Department is not found",
+                StatusCode = StatusCodes.Status400BadRequest,
+                Data = null
+            };
+        }
+        var data = departments.Adapt<List<DepartmentResponseDto>>();
+        
+        foreach(var dept in data)
+        {
+            dept.EmployeeCount = dept.Employees.Count();
+        }
+        return new ApiResponse<List<DepartmentResponseDto>>
+            {
+                Message = "All departments successfully",
+                StatusCode = StatusCodes.Status200OK,
+                Data = data
+            };
+            
     }
 
     //Todo: Complete this method
     public async Task<ApiResponse<DepartmentResponseDto>> GetDepartmentByIdAsync(int id, CancellationToken cancellationToken)
     {
         var response = await departmentRepository.GetDepartmentByIdAsync(id, cancellationToken);
-        var result = response.Adapt<DepartmentResponseDto>();
-        
-        if (response != null)
+        if (response == null)
         {
+            
             return new ApiResponse<DepartmentResponseDto>()
             {
-                StatusCode = StatusCodes.Status200OK,
-                Message = "Request was successfully retrieved",
-                Data = result
+                Message = "Department is not found",
+                StatusCode = StatusCodes.Status404NotFound,
+                Data = null
             };
-            
         }
+        var result = response.Adapt<DepartmentResponseDto>();
 
+        result.Employees = response.Employees.Adapt<List<EmployeeResponseDto>>();
+        result.EmployeeCount = response.Employees.Count;
+            
         return new ApiResponse<DepartmentResponseDto>()
         {
-            StatusCode = StatusCodes.Status400BadRequest,
-            Message = "Request failed",
-            Data = null
+            StatusCode = StatusCodes.Status200OK,
+            Message = "Request was successfully retrieved",
+            Data = result
         };
-        ; 
+        
+        
     }
     
     

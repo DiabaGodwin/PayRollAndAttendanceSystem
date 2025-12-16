@@ -4,7 +4,7 @@ namespace Payroll.Attendance.Application.Dto.Employee;
 
 public class AddEmployeeDto
 { 
-    public int Id { get; set; }
+    
    
     [Required]
     public string Title { get; set; } = null!;

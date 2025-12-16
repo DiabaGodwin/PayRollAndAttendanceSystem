@@ -15,8 +15,8 @@ using Microsoft.EntityFrameworkCore;
             public async Task<int> AddEmployeeAsync(Employee employee, CancellationToken token)
             {
              await context.Employees.AddAsync(employee, token);
-             var result = await context.SaveChangesAsync(token);
-             return result;
+             await context.SaveChangesAsync(token);
+             return employee.Id;
             }
 
             public async Task<List<Employee>> GetAllEmployeesAsync(PaginationRequest request,

@@ -38,6 +38,24 @@ public class AuthRepository(ApplicationDbContext dbContext) : IAuthRepository
          => await dbContext.Users.FirstOrDefaultAsync(x => (x.UserName == usernameOrEmail || x.Email == usernameOrEmail) && x.PasswordHash==requestPassword, cancellationToken);
     
 
+    public async Task<bool> SaveRefreshToken(string refreshToken, DateTime tokenExpires, int userId, CancellationToken cancellationToken)
+    {
+         var result = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+         if(result == null) return false;
+         result.RefreshExpires = tokenExpires;
+         result.RefreshToken = refreshToken;
+         var res = await dbContext.SaveChangesAsync(cancellationToken);
+         return res > 0;
+    }
+
+    public async Task<User?> CheckIfUserWithTokenExist(string refresfToken, string userNameOrEmail, CancellationToken cancellationToken)
+    {
+        var res = await dbContext.Users.FirstOrDefaultAsync(x=> x.RefreshToken==refresfToken && (x.Email == userNameOrEmail || x.UserName==userNameOrEmail) && x.RefreshExpires > DateTime.UtcNow, cancellationToken);
+        return res;
+    }
+
+
+    //Add a new method to save the refreshtoken and expiration
 
     public async Task<User?> LoginUser(User user, CancellationToken cancellationToken) =>
         await dbContext.Users.FirstOrDefaultAsync(x => x.UserName == user.UserName && x.PasswordHash == user.PasswordHash,

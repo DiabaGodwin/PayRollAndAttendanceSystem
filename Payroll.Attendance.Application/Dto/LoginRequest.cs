@@ -9,3 +9,11 @@ public class LoginRequest
  
  public required string Password { get; set; } 
 }
+
+public class LoginWithTokenRequest
+{
+
+ public required string RefreshToken { get; set; }
+ 
+ public required string UserNameOrEmail { get; set; } 
+}

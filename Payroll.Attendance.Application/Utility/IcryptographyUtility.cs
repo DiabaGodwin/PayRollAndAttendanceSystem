@@ -8,7 +8,7 @@ public interface ICryptographyUtility
     string HashPassword (string password);
     bool VerifyPassword(string password, string hashedPassword);
     TokenResponse GenerateToken(UserModel user);
-    RefreshToken GenerateRefreshToken();
+    RefreshTokenDto GenerateRefreshToken();
 
 }
 

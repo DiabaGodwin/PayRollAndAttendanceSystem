@@ -1,7 +1,7 @@
 namespace Payroll.Attendance.Application.Dto;
 
-public class RefreshToken
+public class RefreshTokenDto
 {
-    public string Token { get; set; } = null!;
-    public DateTime Expires { get; set; } 
+    public string RefreshToken { get; set; } = null!;
+    public DateTime RefreshExpires { get; set; } 
 }

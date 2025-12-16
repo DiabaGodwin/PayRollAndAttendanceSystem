@@ -8,4 +8,7 @@ public interface IAuthService
     Task<ApiResponse<int>> AddUser(AddUserRequest request, CancellationToken cancellationToken);
     Task<ApiResponse<LoginResponse>> LoginUser(LoginRequest request, CancellationToken cancellationToken);
     Task<ApiResponse<int>> UpdateUserRequest(UpdateUserRequest request, CancellationToken cancellationToken);
+
+   Task<ApiResponse<LoginResponse>> LoginWithRefreshToken(LoginWithTokenRequest request,
+       CancellationToken cancellationToken);
 }

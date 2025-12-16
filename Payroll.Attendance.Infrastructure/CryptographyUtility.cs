@@ -72,12 +72,12 @@ public class CryptographyUtility : ICryptographyUtility
             };
         }
 
-        public RefreshToken GenerateRefreshToken()
+        public RefreshTokenDto GenerateRefreshToken()
         {
-            var refreshToken = new RefreshToken
+            var refreshToken = new RefreshTokenDto
             {
-                Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
-                Expires = DateTime.UtcNow.AddDays(6)
+                RefreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
+                RefreshExpires = DateTime.UtcNow.AddDays(6)
             };
             return refreshToken;
             
