@@ -1,7 +1,9 @@
+using System.Globalization;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Payroll.Attendance.Application.Dto;
+using Payroll.Attendance.Application.Dto.AttendanceRecord;
 using Payroll.Attendance.Application.Dto.Employee;
 using Payroll.Attendance.Application.Repositories;
 using Payroll.Attendance.Domain.Enum;
@@ -16,7 +18,9 @@ public class EmployeeService(
     IAuditTrailRepo auditTrailRepo,
     ICurrentUserService currentUserService, 
     IDepartmentRepository departmentRepository,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IPayrollRepository  payrollRepository, 
+    IAttendanceRepository attendanceRepository)
     : IEmployeeService
 {
     private (bool Success, string Message) ValidateDateOfBirth(DateTime? dob)
@@ -318,5 +322,131 @@ public class EmployeeService(
                 Data = null,
             };
         }
+    }
+
+    public async Task<ApiResponse<EmployeeAnalyticsDto>> GetEmployeeAnalyticsAsync(int employeeId,
+        DateTime startDate, DateTime endDate,
+        CancellationToken cancellationToken)
+    {
+        var start = startDate.Date;
+        var end = endDate.Date;
+     
+        
+        
+        
+        var employee = await employeeRepository.GetEmployeeByIdAsync(employeeId, cancellationToken);
+        if (employee == null)
+            return new ApiResponse<EmployeeAnalyticsDto>()
+             {
+                Message = "Employee not found",
+                StatusCode = StatusCodes.Status404NotFound,
+            };
+        var allAttendances = await attendanceRepository.GetAttendanceByEmployeeIdAsync(startDate,endDate,employeeId, cancellationToken);
+        var referenceDate = startDate.Date;
+        var attendanceSummaryList = allAttendances.GroupBy(a => a.Date.Date).OrderBy(g => g.Key).Select(g =>
+        {
+            var date = g.Key;
+            return new EmployeeAttendanceSummaryDto
+            {
+                Date = date,
+                DayName = date.DayOfWeek.ToString(),
+                MonthName = date.ToString("MMM"),
+
+                Present = g.Count(x => x.CheckIn.HasValue),
+                Absent = g.Count(x => x.IsAbsent),
+                LateArrivals = g.Count(x => x.IsLate),
+                OnLeave = g.Count(x => x.IsOnLeave),
+
+                TotalPenalties =
+                    g.Count(x => x.IsLate) +
+                    g.Count(x => x.IsAbsent) +
+                    g.Count(x => x.CheckOut==null)
+            };
+
+        }).ToList();
+        
+
+       
+        
+        //Attendance Trend
+        var attendanceTrend = new List<AttendanceTrendDto>();
+        
+        
+      var isYearly = startDate.Year != endDate.Year;
+      var isMonthly = !isYearly && startDate.Month != endDate.Month;
+
+       if (isYearly)
+       {
+            attendanceTrend = allAttendances.GroupBy(f=>f.Date.Year).Select(j=>new AttendanceTrendDto()
+           {
+               label = j.Key.ToString(),
+               Present = j.Count(x=>x.CheckIn.HasValue),
+               Absent = j.Count(x=>x.IsAbsent),
+               LateArrivals = j.Count(x=>x.IsLate),
+               TotalPenalties = j.Count(x=>x.IsLate) + j.Count(x=>x.IsAbsent) + j.Count(x=>!x.CheckOut.HasValue)
+               
+           }).ToList();
+            
+            
+       }
+       else if (isMonthly)
+       {
+           // Monthly Trend
+           attendanceTrend = allAttendances.GroupBy(f => f.Date.Month).Select(g => new AttendanceTrendDto()
+               {
+                   label = CultureInfo.CurrentCulture
+                       .DateTimeFormat.GetAbbreviatedMonthName(g.Key),
+                   Present = g.Count(x => x.CheckIn.HasValue),
+                   Absent = g.Count(x => x.IsAbsent),
+                   LateArrivals = g.Count(x => x.IsLate),
+                   TotalPenalties = g.Count(x => x.IsLate) + g.Count(x => x.IsAbsent) +
+                                    g.Count(x => !x.CheckOut.HasValue)
+
+               })
+               .ToList();
+       }
+       
+       else
+       {
+           //Dailly Trend
+           attendanceTrend = allAttendances.GroupBy(a=>a.Date.DayOfWeek).Select(g=>new AttendanceTrendDto()
+           {
+               label = g.Key.ToString().Substring(0, 3),
+               Present = g.Count(x=>x.CheckIn.HasValue),
+               Absent = g.Count(x=>x.IsAbsent),
+               LateArrivals = g.Count(x=>x.IsLate),
+               TotalPenalties = g.Count(x=>x.IsLate) + g.Count(x=>x.IsAbsent) + g.Count(x=>!x.CheckOut.HasValue)
+           }).ToList();
+       }
+       //Compliance and performance
+       var compliance = new ComplianceAndPerformanceDto()
+       {
+           LateCheckIn = allAttendances.Count(x => x.IsLate),
+           MissedCheckOut = allAttendances.Count(x =>!x.CheckOut.HasValue),
+           TotalPenalties = allAttendances.Count(x => x.IsLate) + allAttendances.Count(x => x.IsAbsent) +
+                            allAttendances.Count(x => !x.CheckOut.HasValue)
+       };
+       
+       //Payroll summary
+       var payrollSummary = await payrollRepository. GetPayrollSummaryByEmployeeIdAsync(employeeId, cancellationToken); 
+       //Build employee analytics
+       var analytcs = new EmployeeAnalyticsDto()
+       {
+           employeeResponse = employee,
+           PayrollSummary = payrollSummary,
+           EmployeeAttendanceSummary = attendanceSummaryList,
+           AttendanceTrend = attendanceTrend,
+           ComplianceAndPerformance = compliance
+           
+
+       };
+      
+       return new ApiResponse<EmployeeAnalyticsDto>()
+       {
+           Message = "Employee summary retrieved successfully",
+           StatusCode = StatusCodes.Status200OK,
+           Data = analytcs
+           
+       };
     }
 }
