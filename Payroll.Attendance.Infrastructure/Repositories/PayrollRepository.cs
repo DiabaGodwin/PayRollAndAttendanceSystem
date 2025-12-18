@@ -163,5 +163,19 @@ var result = await dbContext.Payrolls.Where(x => x.Employee != null && x.Employe
                 })
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<List<PayrollSummaryDto>> GetPayrollSummaryByEmployeeIdAsync(int employeeId,
+            CancellationToken cancellationToken)
+        {
+            return await dbContext.Payrolls.Where(x => x.EmployeeId == employeeId).GroupBy(x => x.EmployeeId)
+                .Select(g => new PayrollSummaryDto()
+                {
+                    TotalBasicSalary = g.Sum(x => x.BasicSalary),
+                    TotalAllowance = g.Sum(x => x.Allowance),
+                    TotalDeduction = g.Sum(x => x.TotalDeduction),
+                    NetPayroll = g.Sum(x => x.NetPay),
+                })
+                .ToListAsync(cancellationToken);
+        }
     }
 } 

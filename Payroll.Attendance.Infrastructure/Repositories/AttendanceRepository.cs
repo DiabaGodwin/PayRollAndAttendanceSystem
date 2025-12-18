@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Payroll.Attendance.Application.Dto;
+using Payroll.Attendance.Application.Dto.AttendanceRecord;
 using Payroll.Attendance.Application.Repositories;
 using Payroll.Attendance.Domain.Models;
 using Payroll.Attendance.Infrastructure.Data;
@@ -8,18 +9,19 @@ namespace Payroll.Attendance.Infrastructure.Repositories;
 
 public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceRepository
 {
-    private IAttendanceRepository _attendanceRepositoryImplementation;
 
-    public async Task<List<AttendanceRecord>> GetAllAsync(PaginationRequest request, CancellationToken cancellationToken)
+    public async Task<List<AttendanceRecord>> GetAllAsync( GetAttendanceRequest request, CancellationToken cancellationToken)
     {
         var query = dbContext.Attendances .Include(a => a.Employee)
             .ThenInclude(x=>x.Department).AsQueryable();
-        
+        if (request.EmployeeId.HasValue)
+        {
+            query = query.Where(a => a.EmployeeId == request.EmployeeId);
+        }
         if (!string.IsNullOrEmpty(request.SearchText))
             query = query.Where(x => 
                 x.Employee.FirstName.Contains(request.SearchText) ||
                 x.Employee.Surname.Contains(request.SearchText) ||
-                x.Employee.EmployeeId.ToString().Contains(request.SearchText) ||
                 x.Employee.Department.Name.Contains(request.SearchText)
                 
             );
@@ -28,7 +30,7 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
              query = query.Where(x =>x.Date >= request.StartDate && x.Date <= request.EndDate);
         }
 
-
+ 
         query = query.OrderByDescending(x => x.Date).ThenByDescending(x=> x.CheckIn)
        .ThenByDescending(x=>x.CheckOut);
         
@@ -229,5 +231,27 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
         var end = endDate.Date;
         return await dbContext.Attendances.Include(x => x.Employee)
             .Where(x=>x.Date.Date >= start && x.Date.Date <= end).ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<AttendanceRecord>> GetAttendanceByEmployeeIdAsync(DateTime startDate, DateTime endDate,int employeeId, CancellationToken cancellationToken)
+    {
+        
+        return await dbContext.Attendances.Where(x=>x.EmployeeId == employeeId && x.Date.Date >= startDate && x.Date.Date <= endDate).ToListAsync(cancellationToken);
+        
+    }
+
+    public async Task<List<AttendanceRecord>> GetUncheckAttendanceAsync(DateTime date, CancellationToken cancellationToken)
+    {
+        return await dbContext.Attendances
+            .Where(a => a.Date.Date == date && a.CheckIn.HasValue && !a.CheckOut.HasValue)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<AttendanceRecord>> UpdateAttendanceCheckoutAsync(List<AttendanceRecord> attendance,
+        CancellationToken cancellationToken)
+    {
+        dbContext.Attendances.UpdateRange(attendance);
+         await dbContext.SaveChangesAsync(cancellationToken);
+        return attendance;
     }
 }

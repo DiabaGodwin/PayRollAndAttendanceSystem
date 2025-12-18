@@ -9,7 +9,8 @@ using Payroll.Attendance.Domain.Models;
 namespace Payroll.Attendance.Application.Services
 {
     public class PayrollService(IPayrollRepository repository,
-        ILogger<PayrollService> logger, IAuditTrailRepo auditTrailRepo, ICurrentUserService currentUserService ) : IPayrollService
+        ILogger<PayrollService> logger, IAuditTrailRepo auditTrailRepo,
+        ICurrentUserService currentUserService,  IUnitOfWork unitOfWork) : IPayrollService
     {
         public async Task<ApiResponse<int>> CreatePayrollAsync(CreatePayrollDto dto, CancellationToken cancellationToken)
         {
@@ -35,16 +36,21 @@ namespace Payroll.Attendance.Application.Services
                     PayslipNumber = Guid.NewGuid().ToString(),
                     PayslipPath = $"/payslips/{dto.PayslipNumber}.pdf"
                 };
+                await unitOfWork.BeginTransactionAsync(cancellationToken);
                 var result = await repository.CreatePayrollAsync(payroll,cancellationToken);
-                var audit = new AuditTrail
+                var audit = await auditTrailRepo.SaveAuditTrail(new AuditTrail()
                 {
                     Action = "PaysrollCreated",
                     Descriptions = $"Employee payslip generated",
                     CreatedAt = DateTime.UtcNow,
                     CreatedBy = currentUserService.UserId,
-                };
-                await auditTrailRepo.SaveAuditTrail(audit, cancellationToken);
+                }, cancellationToken);
+                if (result < 0 && audit < 0)
+                {
+                    await unitOfWork.RollbackAsync(cancellationToken);
+                }
 
+                await unitOfWork.CommitAsync(cancellationToken);
                 return new ApiResponse<int>()
                 {
                     Data = result,
@@ -55,6 +61,7 @@ namespace Payroll.Attendance.Application.Services
             catch (System.Exception var)
             {
                 logger.LogError( "Error  generating payroll for EmployeeId {EmployeeId}", dto );
+                await unitOfWork.RollbackAsync(cancellationToken);
                 return new ApiResponse<int>()
                 {
                     Message = "Creating payroll failed",
@@ -73,17 +80,20 @@ namespace Payroll.Attendance.Application.Services
         {
             try
             {
+                await unitOfWork.BeginTransactionAsync(cancellationToken);
                 var result  = await repository.GetPayrollByIdAsync(dto.Id, cancellationToken);
                 if (result == null)
                 {
-                    var audit = new AuditTrail
+                    var audit = await auditTrailRepo.SaveAuditTrail (new AuditTrail
                     {
                         Action = "PayslipGenerated",
                         Descriptions = $"Employee payslip generated",
                         CreatedAt = DateTime.UtcNow,
                         CreatedBy = currentUserService.UserId,
-                    };
-                    await auditTrailRepo.SaveAuditTrail(audit, cancellationToken);
+                    }, cancellationToken);
+                    
+                    
+                    
                     return new ApiResponse<GeneratePayslipDto>()
                     {
                         Message = "Payslipp record not found",
@@ -102,8 +112,7 @@ namespace Payroll.Attendance.Application.Services
                 dto.PayslipPath = $"/payslips/{dto.PayslipNumber}.pdf";
                 dto.PaidDate = DateTime.UtcNow;
                 
-              
-
+                await unitOfWork.CommitAsync(cancellationToken);
                 return new ApiResponse<GeneratePayslipDto>()
                 {
                     Message = "Payslip generated successfully",
@@ -115,7 +124,7 @@ namespace Payroll.Attendance.Application.Services
             catch (System.Exception e)
             {
                 logger.LogError( "Error  generating payroll for EmployeeId {EmployeeId}", dto.Id );
-                
+                await unitOfWork.RollbackAsync(cancellationToken);
                 return new ApiResponse<GeneratePayslipDto>()
                 {
                     Message = "Failed to generate payslip",
@@ -156,15 +165,19 @@ namespace Payroll.Attendance.Application.Services
             var result = await repository.UpdatePayrollAsync( request, cancellationToken);
             if (result)
             {
-                var audit = new AuditTrail
+                var audit = await auditTrailRepo.SaveAuditTrail( new AuditTrail
                 {
                     Action = nameof(UpdatePayrollAsync),
                     Descriptions = $"Payroll updated successfully with ID {id}",
                     UpdatedAt = DateTime.UtcNow,
                     UpdatedBy = currentUserService.UserId, 
-                };
-                await auditTrailRepo.SaveAuditTrail(audit, cancellationToken);
+                }, cancellationToken);;
+                if(result && audit < 0)
+                {
+                    await unitOfWork.RollbackAsync(cancellationToken);
+                }
                 
+                await unitOfWork.CommitAsync(cancellationToken);
                 return new ApiResponse<bool>()
                 {
                     Message = "Payroll updated successfully",
@@ -173,7 +186,7 @@ namespace Payroll.Attendance.Application.Services
                 };
                 
             }
-                
+            await unitOfWork.CommitAsync(cancellationToken);    
             return new ApiResponse<bool>()
             {
                 Message = "Payroll failed to update",
@@ -184,18 +197,23 @@ namespace Payroll.Attendance.Application.Services
 
         public async Task<ApiResponse<List<PayrollResponseDto>>> DeletePayrollAsync(int id, CancellationToken cancellationToken)
         {
+            await unitOfWork.BeginTransactionAsync(cancellationToken);
            var res = await repository.DeletePayrollAsync(id, cancellationToken);
-           var response = res.Adapt(new List<PayrollResponseDto>());
            
-           var audit = new AuditTrail
+           var audit = await auditTrailRepo.SaveAuditTrail( new AuditTrail
            {
                Action = "PaysrollDelete",
                Descriptions = $"Employee payslip deleted successfully",
                UpdatedAt = DateTime.UtcNow,
                UpdatedBy = currentUserService.UserId,
-           };
-           await auditTrailRepo.SaveAuditTrail(audit, cancellationToken);
-
+           }, cancellationToken);;
+           if (res && audit < 0)
+           {
+               await unitOfWork.RollbackAsync(cancellationToken);
+           }
+           
+           var response = res.Adapt(new List<PayrollResponseDto>());
+           await unitOfWork.CommitAsync(cancellationToken);
            return new ApiResponse<List<PayrollResponseDto>>()
            {
                Message = "Payroll deleted successfully",

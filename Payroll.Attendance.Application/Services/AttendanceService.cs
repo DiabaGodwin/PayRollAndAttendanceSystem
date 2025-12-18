@@ -56,7 +56,7 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
         };
     }
 
-    public async Task<ApiResponse<List<AttendanceResponseDto>>> GetAllAsync(PaginationRequest request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<List<AttendanceResponseDto>>> GetAllAsync( GetAttendanceRequest request, CancellationToken cancellationToken)
     {
         var res = await repository.GetAllAsync(request, cancellationToken);
         var response = new List<AttendanceResponseDto>();
@@ -650,5 +650,17 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
         };
 
 
+    }
+
+    public async Task MarkMissedCheckoutsAsync(CancellationToken cancellationToken)
+    {
+        var yesterday = DateTime.Now.Date.AddDays(-1);
+        var records = await repository.GetUncheckAttendanceAsync(yesterday, cancellationToken);
+        foreach (var attendance in records)
+        {
+            attendance.MissedCheckout = true;
+        }
+
+        await repository.UpdateAttendanceCheckoutAsync(records,cancellationToken);
     }
 }

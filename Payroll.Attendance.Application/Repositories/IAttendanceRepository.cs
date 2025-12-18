@@ -7,7 +7,8 @@ namespace Payroll.Attendance.Application.Repositories
     public interface IAttendanceRepository
     {
         Task<int> CheckIn(AttendanceRecord attendance, CancellationToken cancellationToken);
-        Task<List<AttendanceRecord>> GetAllAsync(PaginationRequest request, CancellationToken cancellationToken);
+        Task<List<AttendanceRecord>> GetAllAsync(GetAttendanceRequest request,
+            CancellationToken cancellationToken);
         Task<AttendanceRecord?> GetByIdAsync(int id, CancellationToken cancellationToken);
         Task  DeleteAsync(int id, CancellationToken cancellationToken);
         Task<int> CheckOut(int employeeId, CancellationToken cancellationToken);
@@ -30,6 +31,11 @@ namespace Payroll.Attendance.Application.Repositories
         Task<List<AttendanceRecord>> GetOnlyTodayAttendanceSummary(DateTime startDate, DateTime endDate, CancellationToken cancellationToken);
         Task<List<AttendanceRecord>> GetOnlyWeekAttendanceSummary(DateTime startDate, DateTime endDate, CancellationToken cancellationToken);
         Task<List<AttendanceRecord>> GetOnlyMonthAttendanceSummary(DateTime startDate, DateTime endDate, CancellationToken cancellationToken);
+        Task<List<AttendanceRecord>> GetAttendanceByEmployeeIdAsync (DateTime startDate, DateTime endDate,int employeeId, CancellationToken cancellationToken);
+        Task<List<AttendanceRecord>> GetUncheckAttendanceAsync(DateTime date, CancellationToken cancellationToken);
+        Task<List<AttendanceRecord>> UpdateAttendanceCheckoutAsync(List<AttendanceRecord> attendance,
+            CancellationToken cancellationToken);
+        
      
         
     }
