@@ -18,8 +18,13 @@ public class AttendanceRecord
     public TimeSpan? TotalHours { get; set; }
     public bool IsLate { get; set; }
     public bool LeftEarly { get; set; }
+    public bool MissedCheckout { get; set; }
+    public int LateCheckIn { get; set; }
+    public bool IsAbsent { get; set; }
     public string? Remarks { get; set; }
     public bool IsOnLeave { get; set; }
+   
+    public int TotalPenalties { get; set; }
     public AttendanceStatus Status { get; set; } = AttendanceStatus.Present;
 
     public string? CheckInLocation { get; set; }

@@ -6,7 +6,7 @@ namespace Payroll.Attendance.Application.Services;
 public interface IAttendanceService
 {
     Task<ApiResponse<int>> CheckIn(AttendanceRequest request, CancellationToken cancellationToken);
-    Task<ApiResponse<List<AttendanceResponseDto>>> GetAllAsync(PaginationRequest request, CancellationToken cancellationToken);
+    Task<ApiResponse<List<AttendanceResponseDto>>> GetAllAsync( GetAttendanceRequest request, CancellationToken cancellationToken);
     Task<ApiResponse<AttendanceResponseDto>> GetByIdAsync(int id, CancellationToken cancellationToken);
     Task<ApiResponse<int>> CheckOutAsync(UpdatedAttendanceRequest request, CancellationToken cancellationToken);
 
@@ -27,4 +27,6 @@ public interface IAttendanceService
         DateTime endDate, CancellationToken cancellationToken);
     Task<ApiResponse<MonthAttendanceSummaryDto>> GetOnlyMonthAttendanceSummaryAsync(DateTime startDate,
         DateTime endDate, CancellationToken cancellationToken);
+    Task MarkMissedCheckoutsAsync (CancellationToken cancellationToken);
+    
 } 
