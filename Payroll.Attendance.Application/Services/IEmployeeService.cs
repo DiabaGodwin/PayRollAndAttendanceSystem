@@ -19,6 +19,7 @@ public interface IEmployeeService
     Task<ApiResponse<List<EmployeeIdAndNameDto>>> GetEmployeeIdAndName(string? searchText, CancellationToken cancellationToken);
     Task<ApiResponse<List<EmployeeResponseDto>>> DeleteEmployeeAsync(int id, CancellationToken cancellationToken);
     Task<ApiResponse<EmployeeSummaryDto>> GetEmployeeSummaryAsync(CancellationToken cancellationToken);
-    Task<ApiResponse<EmployeeAnalyticsDto>> GetEmployeeAnalyticsAsync(int employeeId, DateTime startDate,
+    Task<ApiResponse<EmployeeAnalyticsDto>> GetEmployeeAnalyticsAsync(int employeeId, string searchText,
+        DateTime startDate,
         DateTime endDate, CancellationToken cancellationToken);
 }

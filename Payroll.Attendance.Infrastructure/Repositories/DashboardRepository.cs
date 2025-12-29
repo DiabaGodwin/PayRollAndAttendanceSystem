@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
+using Payroll.Attendance.Application.Dto.DashBoard;
 using Payroll.Attendance.Application.Repositories;
 using Payroll.Attendance.Domain.Enum;
 using Payroll.Attendance.Domain.Models;
@@ -20,24 +21,27 @@ public class DashboardRepository(ApplicationDbContext dbContext) : IDashboardRep
         return await dbContext.Payrolls.SumAsync(f => f.NetPay);
     }
 
-    public async Task<int> GetpresentCountAsync( CancellationToken cancellationToken)
-    {
-        return await dbContext.Attendances.CountAsync(d => d.Status == AttendanceStatus.Present, cancellationToken);
-    }
-    
+  
 
     public async Task<int> GetPendingReminderCountAsync(CancellationToken cancellationChangeToken)
     {
         return await dbContext.Reminders.CountAsync(e => e.IsCompleted);
     }
 
-    public async Task<List<PayrollTrend>> GetPayrollTrendsAsync(CancellationToken cancellationToken)
+    public async Task<List<AttendanceTrendDto>> GetAttendanceTrendsAsync(DateTime startDate, DateTime endDate,
+        CancellationToken cancellationToken)
     {
-       return await dbContext.Payrolls.GroupBy(a=>a.PayPeriod.Month).Select(g=>new PayrollTrend
-       {
-           Month = g.Key,
-           Amount = g.Sum(a => a.NetPay),
-       }).OrderByDescending(x=>x.Month).ToListAsync();
+       return await dbContext.Attendances.Where(s=>s.Date >= startDate && s.Date <= endDate)
+           .GroupBy(s=> s.Date.Year).Select(s=>new AttendanceTrendDto
+           {
+               label = s.Key.ToString(),
+               Present = s.Count(x=>x.Status == AttendanceStatus.Present),
+               Absent = s.Count(x => x.Status == AttendanceStatus.Absent),
+               LateArrivals = s.Count(x=>x.IsLate),
+               TotalPenalties = s.Count(x=>x.IsLate) + s.Count(x=>x.Status == AttendanceStatus.Absent) + s.Count(x=>x.CheckIn==null)
+           })
+           .OrderBy(x => x.label)
+           .ToListAsync(cancellationToken);
     }
 
     public async Task<List<DepartmentDistribution>> GetDepartmentDistributionsAsync(CancellationToken cancellationToken)

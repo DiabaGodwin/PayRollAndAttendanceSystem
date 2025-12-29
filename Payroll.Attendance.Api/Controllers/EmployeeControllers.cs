@@ -49,9 +49,9 @@ namespace Payroll.Attendance.Api.Controllers
             return StatusCode(result.StatusCode,result);
         }
         [HttpGet("Employees/analytics/{employeeId}")]
-        public async Task<IActionResult> GetEmployeeAnalytics(int employeeId, DateTime startDate, DateTime endDate, CancellationToken cancellationToken)  
+        public async Task<IActionResult> GetEmployeeAnalytics(int employeeId, string searchText, DateTime startDate, DateTime endDate, CancellationToken cancellationToken)  
         {
-            var res = await service.GetEmployeeAnalyticsAsync(employeeId, startDate, endDate, cancellationToken);
+            var res = await service.GetEmployeeAnalyticsAsync(employeeId, searchText, startDate, endDate, cancellationToken);
             return StatusCode(res.StatusCode,res);
         }
 

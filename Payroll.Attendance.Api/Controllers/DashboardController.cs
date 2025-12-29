@@ -18,9 +18,9 @@ public class DashboardController(IDashboardService service) : ControllerBase
     }
 
     [HttpGet("payroll-trend")]
-    public async Task<IActionResult> GetPayrollTrend( CancellationToken cancellationToken)
+    public async Task<IActionResult> GetPayrollTrend(DateTime startDate, DateTime endDate,  CancellationToken cancellationToken)
     {
-        var result = await service.GetPayrollTrendAsync(cancellationToken);
+        var result = await service.GetAttendanceTrendAsync(startDate, endDate, cancellationToken);
         return StatusCode(result.StatusCode, result);
     }
 
@@ -47,6 +47,7 @@ public class DashboardController(IDashboardService service) : ControllerBase
         var  result = await service.DeleteReminderAsync(id, cancellationToken);
         return StatusCode(result.StatusCode, result);
     }
+    /*
 
     [HttpGet("full")]
     public async Task<IActionResult> GetFullDashboard( CancellationToken cancellationToken)
@@ -54,6 +55,7 @@ public class DashboardController(IDashboardService service) : ControllerBase
         var result = await service.GetFullDashboardAsync(cancellationToken);
         return StatusCode(result.StatusCode, result);
     }
+    */
 
     [HttpGet("recent/activites")]
     public async Task<IActionResult> GetRecentActivities(CancellationToken cancellationToken)

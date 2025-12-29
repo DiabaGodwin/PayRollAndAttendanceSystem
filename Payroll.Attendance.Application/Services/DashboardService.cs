@@ -8,17 +8,19 @@ using Payroll.Attendance.Domain.Models;
 
 namespace Payroll.Attendance.Application.Services;
 
-public class DashboardService(IDashboardRepository dashboardRepository, IEmployeeRepository employeeRepository, IAuditTrailRepo auditTrailRepo) : IDashboardService
+public class DashboardService(IDashboardRepository dashboardRepository,
+    IEmployeeRepository employeeRepository,
+    IAuditTrailRepo auditTrailRepo, IAttendanceRepository repository) : IDashboardService
 
 {
     public async Task<ApiResponse<DashBoardSummaryDto>> GetDashboardSummaryAsync(CancellationToken cancellationToken)
-    { var employeesResult = await employeeRepository.GetAllEmployeesAsync(new PaginationRequest{PageSize = 10000, PageNumber = 1}, cancellationToken); 
+    {
+        var employeesResult = await employeeRepository.GetAllEmployeesAsync(new PaginationRequest{PageSize = 10000, PageNumber = 1}, cancellationToken);
         var summary = new DashBoardSummaryDto()
         {
             TotalEmployees = employeesResult.Count,
-            PendingReminders = await dashboardRepository.GetPendingReminderCountAsync(cancellationToken),
             TotalPayroll = await dashboardRepository.GetTotalPayrollAsync(cancellationToken ),
-            AttendanceRate = await dashboardRepository.GetpresentCountAsync(cancellationToken)
+            AttendanceRate = await repository.GetOverallAttendanceRateAsync(DateTime.UtcNow.Month, DateTime.UtcNow.Year, cancellationToken)
             
         };
         var audit = new AuditTrail
@@ -35,18 +37,15 @@ public class DashboardService(IDashboardRepository dashboardRepository, IEmploye
         };
     }
 
-    public async Task<ApiResponse<List<PayrollTrendDto>>> GetPayrollTrendAsync(CancellationToken cancellationToken)
+    public async Task<ApiResponse<List<AttendanceTrendDto>>> GetAttendanceTrendAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
     {
        
-        var trends = await dashboardRepository.GetPayrollTrendsAsync(cancellationToken);
-        var response = trends.Select(x=> new PayrollTrendDto
+        var trends = await dashboardRepository.GetAttendanceTrendsAsync(startDate,endDate,  cancellationToken);
+        var response = trends.Adapt(new List<AttendanceTrendDto>());
+        
+        return new ApiResponse<List<AttendanceTrendDto>>()
         {
-            Month = x.Month,
-            Amount = x.Amount,
-        }).ToList();
-        return new ApiResponse<List<PayrollTrendDto>>()
-        {
-            Message = "Payroll Trends retrieved successfully",
+            Message = "Attendance Trends retrieved successfully",
             StatusCode = StatusCodes.Status200OK,
             Data = response
         };
@@ -114,13 +113,14 @@ public class DashboardService(IDashboardRepository dashboardRepository, IEmploye
          };
 
     }
+    /*
 
     public async Task<ApiResponse<FullDashboardResponseDto>> GetFullDashboardAsync(CancellationToken cancellationToken)
     { 
         var summary = await GetDashboardSummaryAsync(cancellationToken);
         var reminders = await dashboardRepository.GetPendingRemindersAsync(cancellationToken);
         var department = await dashboardRepository.GetDepartmentDistributionsAsync(cancellationToken);
-        var payrollTrends = await dashboardRepository.GetPayrollTrendsAsync(cancellationToken);
+        var payrollTrends = await dashboardRepository.GetAttendanceTrendsAsync(cancellationToken);
 
         var response = new FullDashboardResponseDto
         {
@@ -139,7 +139,7 @@ public class DashboardService(IDashboardRepository dashboardRepository, IEmploye
                 DepartmentName = j.DepartmentName,
                 Count = j.Count
             }).ToList(),
-            PayrollTrend = payrollTrends.Select(k => new PayrollTrendDto
+            PayrollTrend = payrollTrends.Select(k => new AttendanceTrendDto
             {
                 Month = k.Month,
                 Amount = k.Amount,
@@ -152,8 +152,9 @@ public class DashboardService(IDashboardRepository dashboardRepository, IEmploye
             Data = response
         };
     }
+    */
 
-    public async Task<ApiResponse<List<ActivityDto>>> GetActivityAsync(CancellationToken cancellationToken)
+    public async Task<ApiResponse<List<AuditTrail>>> GetActivityAsync(CancellationToken cancellationToken)
     {
         var employees =
             await employeeRepository.GetAllEmployeesAsync(new PaginationRequest { PageNumber = 1, PageSize = 10000 },
@@ -163,42 +164,32 @@ public class DashboardService(IDashboardRepository dashboardRepository, IEmploye
             .ToDictionary(f => f.Key, f => $"{f.First().Title} {f.First().FirstName} {f.First().Surname}");
 
 
-        List<ActivityDto> activities = new();
+        List<AuditTrail> activities = new();
 
         var attendance = await dashboardRepository.GetAllSummaryAsync(cancellationToken);
-        activities.AddRange(attendance.Select(x=> new ActivityDto
+        activities.AddRange(attendance.Select(x=> new AuditTrail
         {
-            RecordId = x.Id,
-            Module = "Attendance",
+            
             Action = x.CheckOut != null ? "Check out" : "Check In",
-            Description = $"{employeeLookup.GetValueOrDefault(x.EmployeeId)} {(x.CheckOut != null ? "check out" : "Check In")}",
-            EmployeeName = employeeLookup.GetValueOrDefault(0),
-            Timestamp = x.UpdatedAt ?? x.CreatedAt
+          
         }));
         
         var payrolls = await dashboardRepository.GetAllPayrollAsync(cancellationToken);
-        activities.AddRange(payrolls.Select(x=> new ActivityDto
+        activities.AddRange(payrolls.Select(x=> new AuditTrail
         {
-          RecordId  = x.Id,
-          Module = "Payroll",
           Action = "Payroll Processed",
-          Description = $"Payroll Processed for {employeeLookup.GetValueOrDefault(x.EmployeeId)}",
-          Timestamp = x.UpdatedAt 
         }));
 
         var departments = await dashboardRepository.GetAllDepartmentsAsync(cancellationToken);
-        activities.AddRange(departments.Select(x=>new ActivityDto
+        activities.AddRange(departments.Select(x=>new AuditTrail
         {
-            RecordId = x.Id,
-            Module = "Department",
+           
             Action = "Department Created",
-            Description = $"Department '{x.Name}' was created",
-            EmployeeName = "system", 
-            Timestamp = x.UpdatedAt ?? x.CreatedAt
+          
         }));
-        var result = activities.OrderByDescending(c=>c.Timestamp).Take(30).ToList();
+        var result = activities.OrderByDescending(c=>c.CreatedBy).Take(30).ToList();
 
-        return new ApiResponse<List<ActivityDto>>()
+        return new ApiResponse<List<AuditTrail>>()
         {
             Message = "Recent Activities retrived successfully",
             StatusCode = StatusCodes.Status200OK,

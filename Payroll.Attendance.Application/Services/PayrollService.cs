@@ -33,8 +33,7 @@ namespace Payroll.Attendance.Application.Services
                     PayrollStatus = "Pending",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    PayslipNumber = Guid.NewGuid().ToString(),
-                    PayslipPath = $"/payslips/{dto.PayslipNumber}.pdf"
+
                 };
                 await unitOfWork.BeginTransactionAsync(cancellationToken);
                 var result = await repository.CreatePayrollAsync(payroll,cancellationToken);
@@ -100,17 +99,9 @@ namespace Payroll.Attendance.Application.Services
                         StatusCode = StatusCodes.Status404NotFound,
                     };
                 }
-
-                dto = result.Adapt<GeneratePayslipDto>();
                 
-                dto.TotalDeduction = dto.Tax + dto.Loan + dto.Deduction;
-                dto.NetPay = dto.BasicSalary + dto.Allowance - dto.TotalDeduction;
+                 
                 
-                dto.PayrollStatus = "Pending";
-                dto.UpdatedAt = DateTime.UtcNow;
-                dto.PayslipNumber = Guid.NewGuid().ToString();
-                dto.PayslipPath = $"/payslips/{dto.PayslipNumber}.pdf";
-                dto.PaidDate = DateTime.UtcNow;
                 
                 await unitOfWork.CommitAsync(cancellationToken);
                 return new ApiResponse<GeneratePayslipDto>()
@@ -275,11 +266,7 @@ namespace Payroll.Attendance.Application.Services
             return await repository.GetGrowthRateAsync(cancellationToken);
         }
 
-        public async Task<List<PayrollTrend>> GetMonthlyTrendAsync(CancellationToken cancellationToken)
-        {
-           return await repository.GetMonthlyTrendAsync(cancellationToken);
-        }
-
+      
         public async Task<List<DepartmentDistribution>> GetDepartmentSalaryDistributionAsync(CancellationToken cancellationToken)
         {
             return await repository.GetDepartmentDistributionAsync(cancellationToken);

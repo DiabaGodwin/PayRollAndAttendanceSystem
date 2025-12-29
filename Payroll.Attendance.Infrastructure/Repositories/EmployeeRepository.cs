@@ -183,6 +183,20 @@ using Microsoft.EntityFrameworkCore;
                 return await context.Employees.Select((e=>e.Id)).Distinct().CountAsync(cancellationToken);
             }
 
+            public async Task<Employee?> GetEmployeeAnalyticsAsync(int employeeId, string searchText, DateTime startDate, DateTime endDate,
+                CancellationToken cancellationToken)
+            {
+                var query =  context.Employees.AsQueryable().AsNoTracking();
+                if (!string.IsNullOrEmpty(searchText))
+                {
+                    query = query.Where(x =>
+                        x.FirstName.Contains(searchText) ||
+                        x.Surname.Contains(searchText) ||
+                        x.OtherName.Contains(searchText));
+                }
+                return await query.FirstOrDefaultAsync(x => x.Id == employeeId, cancellationToken);
+            }
+
 
             public async Task<List<Employee>> GetEmployeesByDepartmentAsync(int departmentId, CancellationToken ct)
             {

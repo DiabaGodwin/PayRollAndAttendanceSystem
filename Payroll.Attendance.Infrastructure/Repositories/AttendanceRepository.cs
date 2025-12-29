@@ -46,7 +46,8 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
 
     public async Task<AttendanceRecord?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        var result = await dbContext.Attendances.Include(e=>e.Employee).FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        var result = await dbContext.Attendances.Include(e=>e.Employee)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         return result;
     }
 
@@ -254,4 +255,17 @@ public class AttendanceRepository(ApplicationDbContext dbContext) : IAttendanceR
          await dbContext.SaveChangesAsync(cancellationToken);
         return attendance;
     }
+
+    public async Task<decimal> GetOverallAttendanceRateAsync(int month, int year, CancellationToken cancellationToken)
+    { 
+       var totalEmployees = await dbContext.Employees.CountAsync(cancellationToken);
+        var start = new DateTime(year, month, 1);
+        var end = start.AddMonths(1).AddDays(-1);
+       
+        var monthPresent = dbContext.Attendances.Where(f=>f.Date >= start && f.Date <= end && f.CheckIn != null).
+            Select(f=>f.EmployeeId).Distinct().Count();
+        return Math.Round((decimal)monthPresent / totalEmployees * 100, 1);
+    }
+
+
 }

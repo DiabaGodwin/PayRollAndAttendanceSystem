@@ -22,7 +22,7 @@ public sealed class ApplicationDbContext : DbContext
     public DbSet<Department> Departments { get; set; }
     
     public DbSet<PayrollRecord> Payrolls {get;set;}
-    public DbSet<Activity> Activities {get;set;}
+  
     public DbSet<Reminder> Reminders {get;set;}
     public DbSet<AuditTrail> AuditTrails {get;set;}
     

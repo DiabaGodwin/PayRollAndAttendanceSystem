@@ -130,21 +130,7 @@ var result = await dbContext.Payrolls.Where(x => x.Employee != null && x.Employe
 
         }
 
-        public async Task<List<PayrollTrend>> GetMonthlyTrendAsync(CancellationToken cancellationToken)
-        {
-            return await dbContext.Payrolls.GroupBy(x => new { x.PayPeriod.Year, x.PayPeriod.Month }).Select(g =>
-                    new PayrollTrend
-                    {
-                        Year = g.Key.Year,
-                        Month = g.Key.Month,
-                        Amount = g.Sum(x => x.NetPay)
-
-                    })
-                .OrderBy(g => g.Year)
-                .ThenBy(g => g.Month)
-                .ToListAsync();
-        }
-
+       
         public async Task<List<DepartmentDistribution>> GetDepartmentDistributionAsync(CancellationToken cancellationToken)
         {
             return await dbContext.Employees.GroupJoin(dbContext.Payrolls,
