@@ -7,7 +7,7 @@ namespace Payroll.Attendance.Application.Dto.DashBoard;
 public class FullDashboardResponseDto
 {
     public DashBoardSummaryDto? Summary { get; set; } = new();
-    public List<PayrollTrendDto> PayrollTrend { get; set; } = new();
+    public List<AttendanceTrendDto> PayrollTrend { get; set; } = new();
     public List<ReminderDto> Reminders { get; set; } = new();
     
     public int TotalEmployees { get; set; }

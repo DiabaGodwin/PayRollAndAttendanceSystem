@@ -35,8 +35,8 @@ namespace Payroll.Attendance.Application.Repositories
         Task<List<AttendanceRecord>> GetUncheckAttendanceAsync(DateTime date, CancellationToken cancellationToken);
         Task<List<AttendanceRecord>> UpdateAttendanceCheckoutAsync(List<AttendanceRecord> attendance,
             CancellationToken cancellationToken);
-        
-     
-        
+
+        Task<decimal> GetOverallAttendanceRateAsync(int month, int year, CancellationToken cancellationToken);
+
     }
 }

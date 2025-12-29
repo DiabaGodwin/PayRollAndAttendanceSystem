@@ -8,7 +8,7 @@ public class PayrollTrendSummaryDto
     public decimal PreviousMonthPayroll { get; set; }
     public decimal YearToPayroll { get; set; }
     public decimal MonthOverMonthChangePercentage { get; set; }
-    public List<PayrollTrendDto> MonthlyTrends { get; set; } = new();
+    public List<AttendanceTrendDto> MonthlyTrends { get; set; } = new();
 
 }
 

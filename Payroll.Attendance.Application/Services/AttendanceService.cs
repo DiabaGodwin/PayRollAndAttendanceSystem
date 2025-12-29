@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.InteropServices.JavaScript;
 using Mapster;
 using Microsoft.AspNetCore.Components.Forms;
@@ -284,15 +285,19 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
         };
     }
 
-    public async Task<decimal> GetOverallAttendanceRateAsync(CancellationToken cancellationToken)
+    public async Task<decimal> GetOverallAttendanceRateAsync(int month, int year, CancellationToken cancellationToken)
     {
-        var totalEmployees = await repository.CountAsync(cancellationToken);
+        var employees = await employeeRepository.GetAllEmployeesAsync(new PaginationRequest{PageNumber = 1, PageSize = 1000}, cancellationToken);
+        var totalEmployees = employees.Count;
         if (totalEmployees == 0)
             return 0;
-        var today = DateTime.UtcNow.Date;
+        var start = new DateTime(month, year, 1);
+        var end = start.AddMonths(1).AddDays(-1);
         var all = await repository.GetAllSummaryAsync(cancellationToken);
-        var present = all.Count(e=>e.Date == today && e.CheckIn != null);
-        return  Math.Round((decimal)present / totalEmployees * 100, 1);
+        var monthPresent = all.Where(f=>f.Date >= start && f.Date <= end && f.CheckIn != null).
+                Select(f=>f.EmployeeId).Distinct().Count();
+        return Math.Round((decimal)monthPresent / totalEmployees * 100, 1);
+
 
 
     } 
@@ -491,8 +496,12 @@ public class AttendanceService(IAttendanceRepository repository,  ILogger<Attend
          double attendancePercentage = totalEmployees == 0 ? 0
              : Math.Round(((double)presentToday / totalEmployees) * 100, 1);
 
+         var day = DateTime.UtcNow.Date;
+
          var todaySummary = new TodayAttendanceSummaryDto()
          {
+             Date = day,
+             DayName = day.DayOfWeek.ToString(),
              TotalEmployee = totalEmployees,
              PresentToday = presentToday,
              AbsentToday = absentToday,

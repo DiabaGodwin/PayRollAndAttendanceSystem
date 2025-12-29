@@ -17,7 +17,7 @@ namespace Payroll.Attendance.Application.Repositories
         Task<decimal> GetTotalPayrollAsync(CancellationToken cancellationToken);
         Task<int> GetHeadCountAsync(CancellationToken cancellationToken);
         Task<decimal> GetGrowthRateAsync(CancellationToken cancellationToken);
-        Task<List<PayrollTrend>> GetMonthlyTrendAsync(CancellationToken cancellationToken);
+       
         Task<List<DepartmentDistribution>> GetDepartmentDistributionAsync(CancellationToken cancellationToken);
         Task<List<PayrollSummaryDto>> GetPayrollSummaryByEmployeeIdAsync(int employeeId,
             CancellationToken cancellationToken); 

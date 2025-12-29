@@ -16,7 +16,7 @@ public interface IPayrollService
     Task<decimal> GetTotalPayrollAsync(CancellationToken cancellationToken);
     Task<int> GetHeadCountAsync(CancellationToken cancellationToken);
     Task<decimal> GetGrowthRateAsync(CancellationToken cancellationToken);
-    Task<List<PayrollTrend>> GetMonthlyTrendAsync(CancellationToken cancellationToken);
+   
     Task<List<DepartmentDistribution>> GetDepartmentSalaryDistributionAsync(CancellationToken cancellationToken);
     
 }

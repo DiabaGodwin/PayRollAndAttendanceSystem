@@ -14,7 +14,7 @@ public interface IAttendanceService
     
     Task<ApiResponse<AttendanceSummaryDto>> GetAllSummaryAsync(
         CancellationToken cancellationToken);
-    Task<decimal> GetOverallAttendanceRateAsync(CancellationToken cancellationToken);
+    Task<decimal> GetOverallAttendanceRateAsync(int month, int year, CancellationToken cancellationToken);
     Task<List<DepartmentAttendance>> GetDepartmentAttendanceAsync(CancellationToken cancellationToken);
  
     Task<ApiResponse<BulkAttendanceResponseDto>> BulkAttendanceAsync(BulkAttendanceRequestDto request,
